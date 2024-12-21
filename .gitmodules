@@ -1,0 +1,3 @@
+[submodule "external/verilog-6502"]
+	path = external/verilog-6502
+	url = git@github.com:Arlet/verilog-6502.git
