@@ -25,9 +25,10 @@ VL_TEST_SRCS = $(wildcard $(VL_TEST_DIR)/*.v)
 VL_TEST_TGTS = $(VL_TEST_SRCS:$(VL_TEST_DIR)/%.v=vl_test_%)
 VL_TEST_ADDL = $(ROM_DIR)/hash.hex
 
-$(info $(VL_TEST_SRCS))
+.PHONY: test test-vl $(VL_TEST_TGTS)
+.DEFAULT_GOAL: test
 
-.PHONY: test-vl $(VL_TEST_TGTS)
+test: test-vl
 
 test-vl: $(VL_TEST_TGTS)
 
@@ -44,3 +45,6 @@ $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 
 $(DIRS): %:
 	mkdir -p $@
+
+clean:
+	rm -rf $(DIRS)
