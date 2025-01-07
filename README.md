@@ -24,3 +24,11 @@ git clone <URL>
 cd <repo name>
 git subomodule init --update
 ```
+
+## Running
+
+* To run all tests, type `make test` (or just `make`).
+* To delete intermediate files (useful if something gets bugged), type `make clean`.
+* To run only Verilog testbenches, type `make test-vl`.
+* To run a particular testbench, type `make vl_test_<testname>`.
+* To view the graph output from a given test, run `gtkwave waveforms/<testname>.fst`.
