@@ -2,6 +2,7 @@
 
 module system(
         input clk,
+        input rst,
 
         output [7:0] dport_out,
         output dport_write,
@@ -12,6 +13,15 @@ module system(
     wire [15:0] addr;
     wire [7:0] data_w;
     wire [7:0] data_r;
+
+    core core(
+        .clk(clk),
+        .rst(rst),
+        .addr(addr),
+        .data_in(data_r),
+        .data_out(data_w),
+        .we(we)
+    );
 
     // The zero-page and stack are stored at 0x0000 and 0x0010, so the lowest
     // part of memory must be RAM. We choose this to be 16K arbitrarily.

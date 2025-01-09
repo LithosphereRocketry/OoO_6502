@@ -62,7 +62,7 @@ $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 
 # Special case rule for the external example v6502 to include its source files
 .SECONDEXPANSION:
-$(VVP_DIR)/asm_v6502_%.vvp: $(ROM_DIR)/test_$$*.hex \
+$(VVP_DIR)/asm_v6502_%.vvp: $(ROM_DIR)/prog_$$*.hex \
 					   $(wildcard $(RTL_DIR)/cpu_v6502/*.v) \
 					   $(wildcard $(EXT_V6502_DIR)/*.v) \
 					   $(VL_SOURCE_SUPPORT)
@@ -71,11 +71,24 @@ $(VVP_DIR)/asm_v6502_%.vvp: $(ROM_DIR)/test_$$*.hex \
 # For tests not running on v6502, the makefile should fall through to here and
 # not include the external libraries
 .SECONDEXPANSION:
-$(VVP_DIR)/asm_%.vvp: $(ROM_DIR)/test_$$(word 2,$$(subst _, ,$$*)).hex \
+$(VVP_DIR)/asm_%.vvp: $(ROM_DIR)/prog_$$(word 2,$$(subst _, ,$$*)).hex \
 					   $$(wildcard $(RTL_DIR)/cpu_$$(word 1,$$(subst _, ,$$*))/*.v) \
 					   $(VL_SOURCE_SUPPORT)
 	iverilog -DROMPATH=\"$<\" -DWAVEPATH=\"$(WAVE_DIR)/asm_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
 
+.PRECIOUS: %.hex
+%.hex: %.bin
+	xxd -p -g 1 -c 1 $< > $@
+
+# ca65 assembler rules
+.PRECIOUS: $(ROM_DIR)/prog_%.bin
+.SECONDEXPANSION:
+$(ROM_DIR)/prog_%.bin: basic_layout.cfg $$(subst .a65,.o,$$(wildcard $(ASM_TEST_DIR)/$$*/*.a65))
+	ld65 -o $@ -C $^
+
+.PRECIOUS: %.o
+%.o: %.a65
+	ca65 -o $@ $<
 
 $(DIRS): %:
 	mkdir -p $@

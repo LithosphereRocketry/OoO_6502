@@ -1,2 +1,16 @@
+.segment "CODE"
+
+_start:
+
 inf_loop:
-    jmp inf_loop
+        jmp inf_loop
+
+_nmi: 
+        rti
+_irq:
+        rti
+
+.segment "VECTORS"
+.addr   _nmi    ; NMI vector
+.addr   _start  ; Reset vector
+.addr   _irq    ; IRQ/BRK vector

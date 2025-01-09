@@ -3,13 +3,14 @@
 // Test top level for assembly test cases
 
 module toplevel();
-    reg clk = 1;
+    reg clk = 1, reset = 1;
     wire [7:0] dout;
     wire d_write;
     wire done;
 
     system dut(
         .clk(clk),
+        .rst(reset),
         .dport_out(dout),
         .dport_write(d_write),
         .done(done)
@@ -29,6 +30,12 @@ module toplevel();
         $dumpvars;
 
         for(i = 0; i < 256; i++) datastream[i] <= 8'h00;
+
+        clk = 0;
+        #1;
+        clk = 1;
+        #1;
+        reset = 0;
 
         repeat(100) begin
             clk = 0;
