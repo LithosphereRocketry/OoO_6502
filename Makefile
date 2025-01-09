@@ -21,6 +21,8 @@ DIRS = $(ROM_DIR) $(VVP_DIR) $(WAVE_DIR)
 # Verilog common source files
 VL_SOURCE_SUPPORT = $(wildcard $(RTL_SUPPORT_DIR)/*.v)
 
+# Source files for 
+
 # Verilog module unit tests
 VL_TEST_SRCS = $(wildcard $(VL_TEST_DIR)/*.v)
 VL_TEST_TGTS = $(VL_TEST_SRCS:$(VL_TEST_DIR)/%.v=vl_test_%)
@@ -53,16 +55,26 @@ $(ASM_TEST_TGTS): asm_test_%: $(VVP_DIR)/asm_%.vvp | $(WAVE_DIR)
 # There can be multiple rules targeting one target, and the makefile will pick
 # the first one that works
 $(VVP_DIR)/vl_%.vvp: $(VL_TEST_DIR)/%.v $(VL_SOURCE_SUPPORT) $(VL_TEST_ADDL) | $(VVP_DIR)
-	iverilog -DROMPATH -DWAVEPATH=\"$(WAVE_DIR)/vl_$*.fst\" -s $* -o $@ $< $(VL_SOURCE_SUPPORT)
+	iverilog -DROMPATH -DWAVEPATH=\"$(WAVE_DIR)/vl_$*.fst\" -s $* -o $@ $(filter %.v,$^)
 
 $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 	python3 $< > $@
 
+# Special case rule for the external example v6502 to include its source files
 .SECONDEXPANSION:
- $(VVP_DIR)/asm_%.vvp: rom/test_$$(word 2,$$(subst _, ,$$*)).hex \
+$(VVP_DIR)/asm_v6502_%.vvp: $(ROM_DIR)/test_$$*.hex \
+					   $(wildcard $(RTL_DIR)/cpu_v6502/*.v) \
+					   $(wildcard $(EXT_V6502_DIR)/*.v) \
+					   $(VL_SOURCE_SUPPORT)
+	iverilog -DROMPATH=\"$<\" -DWAVEPATH=\"$(WAVE_DIR)/asm_v6502_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
+
+# For tests not running on v6502, the makefile should fall through to here and
+# not include the external libraries
+.SECONDEXPANSION:
+$(VVP_DIR)/asm_%.vvp: $(ROM_DIR)/test_$$(word 2,$$(subst _, ,$$*)).hex \
 					   $$(wildcard $(RTL_DIR)/cpu_$$(word 1,$$(subst _, ,$$*))/*.v) \
-					   $(VL_SOURCE_MAIN)
-	iverilog -DROMPATH=\"$<\" -DWAVEPATH=\"$(WAVE_DIR)/asm_$*.fst\" -s toplevel -o $@ $< $(VL_SOURCE_SUPPORT)
+					   $(VL_SOURCE_SUPPORT)
+	iverilog -DROMPATH=\"$<\" -DWAVEPATH=\"$(WAVE_DIR)/asm_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
 
 
 $(DIRS): %:
