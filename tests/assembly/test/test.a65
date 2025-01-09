@@ -1,0 +1,2 @@
+inf_loop:
+    jmp inf_loop

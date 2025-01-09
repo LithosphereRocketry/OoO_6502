@@ -32,3 +32,10 @@ git subomodule init --update
 * To run only Verilog testbenches, type `make test-vl`.
 * To run a particular testbench, type `make vl_test_<testname>`.
 * To view the graph output from a given test, run `gtkwave waveforms/<testname>.fst`.
+
+## Test system
+
+The CPU designs in this repository are tested using a basic minimal system, with
+a memory map as follows:
+* ROM: 32 KB, address 0x8000 - 0xFFFF
+* RAM: 16 KB, address 0x0000 - 0x3FFF
