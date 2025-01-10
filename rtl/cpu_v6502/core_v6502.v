@@ -14,13 +14,13 @@ module core(
 
     cpu cpu(
         .clk(clk),
-        .reset(~rst),
+        .reset(rst),
         .AB(addr),
         .DI(data_in),
         .DO(data_out),
         .WE(we),
-        .IRQ(1'b1),
-        .NMI(1'b1),
+        .IRQ(1'b0),
+        .NMI(1'b0),
         .RDY(1'b1) // until we implement these features, just ignore them
     );
 
