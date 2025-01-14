@@ -22,7 +22,7 @@ Windows, it can be run through WSL.
 ```
 git clone <URL>
 cd <repo name>
-git subomodule init --update
+git submodule init --update
 ```
 
 ## Running
