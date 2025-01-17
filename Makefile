@@ -55,7 +55,7 @@ $(ASM_TEST_TGTS): asm_test_%: $(VVP_DIR)/asm_%.vvp | $(WAVE_DIR)
 # There can be multiple rules targeting one target, and the makefile will pick
 # the first one that works
 $(VVP_DIR)/vl_%.vvp: $(VL_TEST_DIR)/%.v $(VL_SOURCE_SUPPORT) $(VL_TEST_ADDL) | $(VVP_DIR)
-	iverilog -pfileline=1 -DROMPATH -DWAVEPATH=\"$(WAVE_DIR)/vl_$*.fst\" -s $* -o $@ $(filter %.v,$^)
+	iverilog -pfileline=1 -DROMPATH -DVERIFYPATH -DWAVEPATH=\"$(WAVE_DIR)/vl_$*.fst\" -s $* -o $@ $(filter %.v,$^)
 
 $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 	python3 $< > $@
@@ -63,18 +63,31 @@ $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 # Special case rule for the external example v6502 to include its source files
 .SECONDEXPANSION:
 $(VVP_DIR)/asm_v6502_%.vvp: $(ROM_DIR)/prog_$$*.hex \
+					   $(ROM_DIR)/verify_$$*.hex \
 					   $(wildcard $(RTL_DIR)/cpu_v6502/*.v) \
 					   $(wildcard $(EXT_V6502_DIR)/*.v) \
 					   $(VL_SOURCE_SUPPORT)
-	iverilog -pfileline=1  -DROMPATH=\"$<\" -DWAVEPATH=\"$(WAVE_DIR)/asm_v6502_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
+	iverilog -pfileline=1  -DROMPATH=\"$<\" -DVERIFYPATH=\"$(word 2,$^)\" -DWAVEPATH=\"$(WAVE_DIR)/asm_v6502_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
 
 # For tests not running on v6502, the makefile should fall through to here and
 # not include the external libraries
 .SECONDEXPANSION:
 $(VVP_DIR)/asm_%.vvp: $(ROM_DIR)/prog_$$(word 2,$$(subst _, ,$$*)).hex \
+					   $(ROM_DIR)/verify_$$(word 2,$$(subst _, ,$$*)).hex \
 					   $$(wildcard $(RTL_DIR)/cpu_$$(word 1,$$(subst _, ,$$*))/*.v) \
 					   $(VL_SOURCE_SUPPORT)
-	iverilog -pfileline=1  -DROMPATH=\"$<\" -DWAVEPATH=\"$(WAVE_DIR)/asm_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
+	iverilog -pfileline=1  -DROMPATH=\"$<\" -DVERIFYPATH=\"$(word 2,$^)\" -DWAVEPATH=\"$(WAVE_DIR)/asm_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
+
+# How to create hex verification files:
+# - from existing hex files:
+.PRECIOUS: $(ROM_DIR)/verify_%.hex | ROM_DIR
+$(ROM_DIR)/verify_%.hex: $(ASM_TEST_DIR)/%/verify.hex
+	cp $< $@
+
+# - from python generator script:
+.PRECIOUS: $(ROM_DIR)/verify_%.hex | ROM_DIR
+$(ROM_DIR)/verify_%.hex: $(ASM_TEST_DIR)/%/make_verify.py
+	python3 $< > $@
 
 .PRECIOUS: %.hex
 %.hex: %.bin

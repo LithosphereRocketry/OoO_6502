@@ -14,6 +14,10 @@ module system(
     wire [7:0] data_w;
     wire [7:0] data_r;
 
+    assign dport_out = data_w;
+    assign dport_write = we & addr == 16'h4000;
+    assign done = we & addr == 16'h4100;
+
     core core(
         .clk(clk),
         .rst(rst),
@@ -46,6 +50,13 @@ module system(
         .data_out(data_rom)
     );
 
-    assign data_r = {8{cs_ram}} & data_ram
-                  | {8{cs_rom}} & data_rom;
+    // For read operations, we have to register the chip selects to make sure
+    // they appear on the same cycle as the data is valid
+    reg cs_ram_reg = 0;
+    always @(posedge clk) cs_ram_reg <= cs_ram;
+    reg cs_rom_reg = 0;
+    always @(posedge clk) cs_rom_reg <= cs_rom;
+    
+    assign data_r = {8{cs_ram_reg}} & data_ram
+                  | {8{cs_rom_reg}} & data_rom;
 endmodule

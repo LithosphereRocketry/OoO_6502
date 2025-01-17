@@ -1,9 +1,9 @@
 .segment "CODE"
 
 _start:
-
-inf_loop:
-        jmp inf_loop
+        lda #$42        ; load constant 
+        sta $4000       ; write a byte to output
+        sta $4100       ; write done flag
 
 _nmi: 
         rti

@@ -29,7 +29,7 @@ module tb_ram();
         input [7:0] data;
         input [7:0] expected;
         begin
-            if(data != expected) begin
+            if(data !== expected) begin
                 $display("Error in ram: expected %h, got %h", expected, data);
                 $fatal;
             end
@@ -68,6 +68,11 @@ module tb_ram();
         read(15'h1234);
         assert_8(data_out, 8'h56);
         read(15'h5678);
+        assert_8(data_out, 8'h9a);
+
+        // The 6502 core expects reads to still work when writing on the next
+        // cycle
+        write(15'h5678, 8'h03);
         assert_8(data_out, 8'h9a);
 
         $finish;

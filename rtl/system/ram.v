@@ -17,8 +17,8 @@ module ram #(
 
     reg [DATA_WIDTH-1:0] ram [0:(1<<ADDR_WIDTH)-1];
 
-    always @(posedge clk) if(we) begin
-        data_out <= {DATA_WIDTH{1'bx}};
-        ram[addr] <= data_in;
-    end else data_out <= ram[addr];
+    always @(posedge clk) begin
+        data_out <= ram[addr];
+        if(we) ram[addr] <= data_in;
+    end 
 endmodule
