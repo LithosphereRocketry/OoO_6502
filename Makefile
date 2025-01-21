@@ -96,12 +96,11 @@ $(ROM_DIR)/verify_%.hex: $(ASM_TEST_DIR)/%/make_verify.py
 # ca65 assembler rules
 .PRECIOUS: $(ROM_DIR)/prog_%.bin
 .SECONDEXPANSION:
-$(ROM_DIR)/prog_%.bin: basic_layout.cfg $$(subst .a65,.o,$$(wildcard $(ASM_TEST_DIR)/$$*/*.a65))
-	ld65 -o $@ -C $^
+$(ROM_DIR)/prog_%.bin: basic_layout.cfg $$(subst .a65,.o,$$(wildcard $(ASM_TEST_DIR)/$$*/*.a65)) | $(ROM_DIR)
+	ld65 -o $@ -C $^ -Ln $(ROM_DIR)/symbols_$*.txt
 
-.PRECIOUS: %.o
 %.o: %.a65
-	ca65 -o $@ $<
+	ca65 -g -o $@ $<
 
 $(DIRS): %:
 	mkdir -p $@

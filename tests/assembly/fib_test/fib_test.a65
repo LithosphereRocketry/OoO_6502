@@ -1,6 +1,8 @@
 .segment "CODE"
 
 _start:
+        ldx #$ff
+        txs
         lda #$1         ; load n
         jsr fib        ; run fib(n)
         jmp end        ; jump to end
