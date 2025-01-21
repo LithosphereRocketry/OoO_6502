@@ -1,0 +1,33 @@
+.segment "CODE"
+
+_start:
+        lda $4000       ; load n
+        jsr _fib        ; run fib(n)
+        jmp _end        ; jump to end
+_fib:
+        cmp #$1         ; check if n=1
+        beq (_base)     ; if so, jump to base case
+        pha             ; store n on stack
+        adc #$ff        ; decrement n
+        jsr _fib        ; run fib(n-1)
+        sta $2000       ; store fib(n-1)=>$2000
+        pla             ; load n=>acc from stack
+        adc #$fe        ; do n-2
+        jsr _fib        ; do fib(n-2)
+        adc $2000       ; add fib(n-1) to fib(n-2)
+        rts             ; return
+_base:
+        rts             ; in base case, just return
+_end:
+        sta $4000       ; write a byte to output
+        sta $4100       ; write done flag
+    
+_nmi: 
+        rti
+_irq:
+        rti
+
+.segment "VECTORS"
+.addr   _nmi    ; NMI vector
+.addr   _start  ; Reset vector
+.addr   _irq    ; IRQ/BRK vector
