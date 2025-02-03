@@ -1,5 +1,5 @@
 **.o
-
+__pycache__
 .vscode
 rom
 vvp
