@@ -26,7 +26,8 @@
 
 @0xA9 ; LDA immediate
     ld acc, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
-    mov {flag, acc}, {flag, acc} ; looks like a noop, but sets carry flags
+    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets carry flags
+    ; (note we move to zero here and not acc to avoid creating false dependency)
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
 @0x8D ; STA absolute
