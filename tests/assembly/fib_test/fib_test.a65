@@ -8,9 +8,9 @@ _start:
         jmp end        ; jump to end
 fib:
         cmp #$1         ; check if n=1
-        beq (base)     ; if so, jump to base case
+        beq base     ; if so, jump to base case
         cmp #$0         ; check if n=0
-        beq (base)     ; if so, jump to base case
+        beq base     ; if so, jump to base case
         pha             ; store n on stack
         adc #$ff        ; decrement n
         jsr fib        ; run fib(n-1)
