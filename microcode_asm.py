@@ -78,7 +78,7 @@ def parse_bit(args: str) -> tuple[tuple[int, int, bool] | None, str | None]:
         return None, args
     regstr, bitstr = a_operands
     reg, _ = parse_reg(regstr)
-    if bitstr[1] == '!':
+    if bitstr[0] == '!':
         bit, _ = parse_int(bitstr[1:])
         inv = True
     else:
@@ -98,6 +98,13 @@ def encode_alu(opcode: int, dst: tuple[int, int], opa: tuple[int, int], opb: int
             | opa[1] << 4
             | opb)
 
+def encode_bit(dst: int, opa: int, bit: int, inv: bool):
+    return (0b1100 << 20
+            | dst << 12
+            | opa << 4
+            | (0b1000 if inv else 0)
+            | bit & 0b111)
+
 def encode_mem(subop: int, srcdst: int, base: tuple[int, int], offset: int) -> int:
     return (0b1101 << 20
             | subop << 16
@@ -106,12 +113,20 @@ def encode_mem(subop: int, srcdst: int, base: tuple[int, int], offset: int) -> i
             | base[1] << 4
             | offset)
 
+def encode_cterm(base: tuple[int, int], offset: int, reg: int, bit: int, inv: bool) -> int:
+    return (0b1110 << 20
+            | base[0] << 16
+            | base[1] << 12
+            | offset << 8
+            | reg << 4
+            | (0b1000 if inv else 0)
+            | bit & 0b111)
+
 def encode_term(base: tuple[int, int], offset: int) -> int:
     return (0b1111 << 20
             | base[0] << 16
             | base[1] << 12
             | offset)
-
 
 def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[int]]:
     words = []
@@ -135,6 +150,20 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
                     words.append(encode_alu(0b0001, dest, opa, 0))
+                case "sub":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    opb, tail = parse_reg(tail)
+                    words.append(encode_alu(0b0010, dest, opa, opb))
+                case "cmp":
+                    dest, tail = parse_reg(tail)
+                    opa, tail = parse_pair(tail)
+                    opb, tail = parse_reg(tail)
+                    words.append(encode_alu(0b0011, (dest, 0), opa, opb))
+                case "bit":
+                    dest, tail = parse_reg(tail)
+                    (reg, bit, inv), tail = parse_bit(tail)
+                    words.append(encode_bit(dest, reg, bit, inv))
                 case "ld":
                     dest, tail = parse_reg(tail)
                     base_addr, tail = parse_pair(tail)
@@ -155,6 +184,11 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_reg(tail)
                     words.append(encode_mem(0b1100, src, base_addr, offset))
+                case "cterm":
+                    base_addr, tail = parse_pair(tail)
+                    offset, tail = parse_reg(tail)
+                    (reg, bit, inv), tail = parse_bit(tail)
+                    words.append(encode_cterm(base_addr, offset, reg, bit, inv))
                 case "term":
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_int(tail)

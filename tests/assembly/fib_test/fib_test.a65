@@ -3,23 +3,46 @@
 _start:
         ldx #$ff
         txs
-        lda #$1         ; load n
+        lda #13        ; load n
         jsr fib        ; run fib(n)
         jmp end        ; jump to end
 fib:
-        cmp #$1         ; check if n=1
-        beq base     ; if so, jump to base case
         cmp #$0         ; check if n=0
-        beq base     ; if so, jump to base case
-        pha             ; store n on stack
-        adc #$ff        ; decrement n
-        jsr fib        ; run fib(n-1)
-        sta $3000       ; store fib(n-1)=>$2000
-        pla             ; load n=>acc from stack
-        adc #$fe        ; do n-2
-        jsr fib        ; do fib(n-2)
-        adc $3000       ; add fib(n-1) to fib(n-2)
-        rts             ; return
+        beq base        ; if so, jump to base case
+        tay
+        lda #$0
+        sta $00
+        lda #$1
+        sta $01
+loop:
+        tya
+        cmp #$1         ; check if n=1
+        beq loop_done        ; if so, jump to base case
+        lda $00         ; load lower value
+        clc             ; make sure a carry bit doesn't fall through
+        adc $01         ; add upper value
+        sta $02         ; stash the result
+        lda $01
+        sta $00         ; shift the previous big value down to the small value
+        lda $02
+        sta $01         ; shift the new value down into the big value
+        dey
+        jmp loop
+        
+        ; pha             ; store n on stack
+        ; clc
+        ; adc #$ff        ; decrement n
+        ; jsr fib        ; run fib(n-1)
+        ; sta $3000       ; store fib(n-1)=>$2000
+        ; pla             ; load n=>acc from stack
+        ; clc
+        ; adc #$fe        ; do n-2
+        ; jsr fib        ; do fib(n-2)
+        ; clc
+        ; adc $3000       ; add fib(n-1) to fib(n-2)
+        ; rts             ; return
+loop_done:
+        lda $01         ; if we're getting here out of the loop, get the value
 base:
         rts             ; in base case, just return
 end:
