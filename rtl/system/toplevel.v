@@ -11,7 +11,8 @@ module toplevel();
     wire done;
 
     integer count = 0;
-
+    integer i;
+    
     system dut(
         .clk(clk),
         .rst(reset),
@@ -22,11 +23,11 @@ module toplevel();
 
     reg [7:0] correct_datastream [0:255];
     reg [7:0] datastream [0:255];
+
     reg [8:0] ds_ptr = 9'h00; // One extra bit to check if we've iterated off the end
 
     always #1 clk = ~clk;
 
-    integer i;
     always @(posedge clk) begin
         if(reset) begin
             reset <= 0;
@@ -35,7 +36,7 @@ module toplevel();
             $fatal;
         end else if(done) begin
             for(i = 0; i < 9'h100; i++) begin
-                if(correct_datastream[i] != datastream[i]) begin
+                if(correct_datastream[i] !== datastream[i]) begin
                     $display("Error in assembly output: expected %h at %h, got %h",
                             correct_datastream[i], i, datastream[i]);
                     $fatal;
@@ -59,6 +60,6 @@ module toplevel();
         $dumpfile(`WAVEPATH);
         $dumpvars;
 
-        for(i = 0; i < 256; i++) datastream[i] <= 8'h00;
+        for(i = 0; i < 256; i++) datastream[i] <= 8'hxx;
     end
 endmodule
