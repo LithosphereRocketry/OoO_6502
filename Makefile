@@ -1,3 +1,6 @@
+# Disable default .c rules
+.SUFFIXES:
+
 # Source directories
 TOOLS_DIR = tools
 
@@ -96,11 +99,14 @@ $(ROM_DIR)/verify_%.hex: $(ASM_TEST_DIR)/%/make_verify.py
 # ca65 assembler rules
 .PRECIOUS: $(ROM_DIR)/prog_%.bin
 .SECONDEXPANSION:
-$(ROM_DIR)/prog_%.bin: basic_layout.cfg $$(subst .a65,.o,$$(wildcard $(ASM_TEST_DIR)/$$*/*.a65)) | $(ROM_DIR)
+$(ROM_DIR)/prog_%.bin: basic_layout.cfg $$(subst .a65,.o,$$(wildcard $(ASM_TEST_DIR)/$$*/*.a65)) $$(subst .c,.o,$$(wildcard $(ASM_TEST_DIR)/$$*/*.c)) $$(wildcard $(ASM_TEST_DIR)/$$*/*.lib) | $(ROM_DIR)
 	ld65 -o $@ -C $^ -Ln $(ROM_DIR)/symbols_$*.txt
 
 %.o: %.a65
 	ca65 -g -o $@ $<
+
+%.a65: %.c
+	cc65 -g -o $@ $<
 
 $(DIRS): %:
 	mkdir -p $@

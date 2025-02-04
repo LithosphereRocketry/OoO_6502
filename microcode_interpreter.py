@@ -40,9 +40,10 @@ def store(addr: int, val: int) -> bool:
 
 micro_count = 0
 macro_count = 0
+memop_count = 0
 
 def interpret_microop(op: int) -> tuple[bool, bool]:
-    global micro_count
+    global micro_count, memop_count
     micro_count += 1
     print(f"\t[micro] op: {hex(op)} regfile: {regfile_to_str()}")
     opcode = op >> 20
@@ -114,6 +115,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
             else:
                 write_reg(r_dest, r_a | (1 << bit))
         case 0xD: # Memory operations
+            memop_count += 1
             subop, r_val, r_hb, r_lb, r_offs = fields
             if subop & 0b0100: # cut-carry
                 addr = ((regfile[r_hb] << 8) |
@@ -204,6 +206,7 @@ with open("6502.mic") as f:
                 else:
                     print("Output correct!")
                     print("Executed", macro_count, "instructions,",
-                                      micro_count, "microops")
+                                      micro_count, "microops,",
+                                      memop_count, "data accesses")
         else:
             print(output)
