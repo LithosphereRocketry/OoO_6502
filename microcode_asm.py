@@ -20,6 +20,8 @@ regnames = [
 
 regs = {name: num for num, name in enumerate(regnames)}
 
+opcode_hints: dict[int, str] = {}
+
 # Basic parse step structure: take string, return value and remainder or None
 # and unchanged string if conversion fails
 
@@ -131,15 +133,24 @@ def encode_term(base: tuple[int, int], offset: int) -> int:
 def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[int]]:
     words = []
     offsets = {}
-    for line in lines:
-        line_contents = line.split(";")[0].strip()
+    was_term = True
+    for lnum, line in enumerate(lines):
+        line_and_comment = line.split(";", 1)
+        if len(line_and_comment) < 2:
+            line_and_comment.append("")
+        line_contents, comment = (s.strip() for s in line_and_comment)
         if line_contents == "":
             pass
         elif line_contents[0] == '@':
-            offsets[int(line_contents[1:], 0)] = len(words)
+            if not was_term:
+                raise Exception(f"Error: instruction at {lnum} not terminated!")
+            opcode = int(line_contents[1:], 0)
+            offsets[opcode] = len(words)
+            opcode_hints[opcode] = comment
         else:
             uop, args = line_contents.split(None, 1)
             tail = args
+            was_term = False
             match uop:
                 case "add":
                     dest, tail = parse_pair(tail)
@@ -160,6 +171,27 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
                     words.append(encode_alu(0b0011, (dest, 0), opa, opb))
+                case "xor":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    opb, tail = parse_reg(tail)
+                    words.append(encode_alu(0b0110, dest, opa, opb))
+                case "sl":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    words.append(encode_alu(0b0111, dest, opa, 0))
+                case "lsr":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    words.append(encode_alu(0b1000, dest, opa, 0))
+                case "rol":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    words.append(encode_alu(0b1001, dest, opa, 0))
+                case "ror":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    words.append(encode_alu(0b1010, dest, opa, 0))
                 case "bit":
                     dest, tail = parse_reg(tail)
                     (reg, bit, inv), tail = parse_bit(tail)
@@ -193,6 +225,7 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_int(tail)
                     words.append(encode_term(base_addr, offset))
+                    was_term = True
                 case _:
                     print("Unrecognized uopcode", uop)
                     exit(-1)

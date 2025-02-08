@@ -24,13 +24,43 @@
     add {flag, acc}, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 2 ; terminate, skipping over 2-byte immediate
 
+@0x0A ; ASL accumulator
+    sl {flag, acc}, {flag, acc}
+    term {pch, pcl}, 0 ; terminate, no immediate
+
+@0x06 ; ASL zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, zero ; load value from memory
+    sl {flag, tmp1}, {flag, tmp1} ; perform operation
+    st tmp1, {zero, tmp0}, zero ; store back to memory
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x90 ; BCC
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    cterm {pch, pcl}, tmp0, flag @ !0 ; branch conditionally on inv. carry bit
+    term {pch, pcl}, 1 ; if branch not taken, fall through
+
+@0xB0 ; BCS
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    cterm {pch, pcl}, tmp0, flag @ 0 ; branch conditionally on carry bit
+    term {pch, pcl}, 1 ; if branch not taken, fall through
+
 @0xF0 ; BEQ
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
-    cterm {pch, pcl}, tmp0, flag @ 1 ; branch conditionally on carry bit
+    cterm {pch, pcl}, tmp0, flag @ 1 ; branch conditionally on zero bit
+    term {pch, pcl}, 1 ; if branch not taken, fall through
+
+@0xD0 ; BNE
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    cterm {pch, pcl}, tmp0, flag @ !1 ; branch conditionally on inv. zero bit
     term {pch, pcl}, 1 ; if branch not taken, fall through
 
 @0x18 ; CLC
     bit flag, flag @ !0
+    term {pch, pcl}, 0 ; terminate, no immediate
+
+@0xd8 ; CLD (decimal mode not implemented)
+    bit flag, flag @ !3
     term {pch, pcl}, 0 ; terminate, no immediate
 
 @0xC9 ; CMP immediate
@@ -38,11 +68,52 @@
     cmp flag, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
+@0xC5 ; CMP zero page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp0, {zero, tmp0}, zero ; load value from zero page
+    cmp flag, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xC0 ; CPY immediate
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    cmp flag, {flag, y}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xC6 ; DEC zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, zero ; load value from memory
+    sub {zero, tmp1}, {one, tmp1}, one ; perform subtraction
+    mov {flag, zero}, {flag, tmp1} ; looks like a noop, but sets N/Z flags
+    st tmp1, {zero, tmp0}, zero ; store back to memory
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
 @0x88 ; DEY
     sub {zero, y}, {one, y}, one ; perform subtraction
-    mov {flag, zero}, {flag, y} ; looks like a noop, but sets carry flags
+    mov {flag, zero}, {flag, y} ; looks like a noop, but sets N/Z flags
     term {pch, pcl}, 0 ; terminate, no immediate
 
+@0x49 ; EOR immediate
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    xor {flag, acc}, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xE6 ; INC zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, zero ; load value from memory
+    add {zero, tmp1}, {zero, tmp1}, one ; perform addition
+    mov {flag, zero}, {flag, tmp1} ; looks like a noop, but sets N/Z flags
+    st tmp1, {zero, tmp0}, zero ; store back to memory
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xE8 ; INX
+    add {zero, x}, {zero, x}, one ; perform addition
+    mov {flag, zero}, {flag, x} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 0 ; terminate, no immediate
+    
+@0xC8 ; INY
+    add {zero, y}, {zero, y}, one ; perform addition
+    mov {flag, zero}, {flag, y} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 0 ; terminate, no immediate
 
 @0x4C ; JMP absolute
     ld tmp0, {pch, pcl}, zero ; load address lower byte
@@ -64,24 +135,74 @@
 
 @0xA9 ; LDA immediate
     ld acc, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
-    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets carry flags
+    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets N/Z flags
     ; (note we move to zero here and not acc to avoid creating false dependency)
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
 @0xA5 ; LDA zero-page
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
-    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets carry flags
     ld acc, {zero, tmp0}, zero ; load value
+    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xAD ; LDA absolute
+    ld tmp0, {pch, pcl}, zero ; load address lower byte
+    ld tmp1, {pch, pcl}, one ; load address upper byte
+    ld acc, {tmp1, tmp0}, zero ; load value
+    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 2 ; terminate, skipping over 2-byte immediate
+
+@0xB1 ; LDA (indirect),Y
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, one ; load upper byte of indirect address
+    ld tmp0, {zero, tmp0}, zero ; load lower byte of indirect address
+    ld acc, {tmp1, tmp0}, y ; load value from indirected, offset by y
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
 @0xA2 ; LDX immediate
     ld x, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
-    mov {flag, zero}, {flag, x} ; looks like a noop, but sets carry flags
+    mov {flag, zero}, {flag, x} ; looks like a noop, but sets N/Z flags
     ; (note we move to zero here and not acc to avoid creating false dependency)
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xA6 ; LDX zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld x, {zero, tmp0}, zero ; load value
+    mov {flag, zero}, {flag, acc} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xAE ; LDX absolute
+    ld tmp0, {pch, pcl}, zero ; load address lower byte
+    ld tmp1, {pch, pcl}, one ; load address upper byte
+    ld x, {tmp1, tmp0}, zero ; load value
+    mov {flag, zero}, {flag, x} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 2 ; terminate, skipping over 2-byte immediate
+
+@0xA0 ; LDY immediate
+    ld y, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    mov {flag, zero}, {flag, y} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xA4 ; LDY zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld y, {zero, tmp0}, zero ; load value
+    mov {flag, zero}, {flag, y} ; looks like a noop, but sets N/Z flags
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x46 ; LSR zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, zero ; load value from memory
+    lsr {flag, tmp1}, {flag, tmp1} ; perform operation
+    st tmp1, {zero, tmp0}, zero ; store back to memory
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
 @0x48 ; PHA
     st acc, {one, sp}, zero ; SP points to first free byte
+    sub {zero, sp}, {one, sp}, one ; point to next free
+    term {pch, pcl}, 0 ; terminate, no immediate
+
+@0x08 ; PHP
+    st flag, {one, sp}, zero ; SP points to first free byte
     sub {zero, sp}, {one, sp}, one ; point to next free
     term {pch, pcl}, 0 ; terminate, no immediate
 
@@ -90,12 +211,54 @@
     ld acc, {one, sp}, zero
     term {pch, pcl}, 0
 
+@0x28 ; PLP
+    add {zero, sp}, {zero, sp}, one
+    ld flag, {one, sp}, zero
+    term {pch, pcl}, 0
+
+@0x2A ; ROL accumulator
+    rol {flag, acc}, {flag, acc}
+    term {pch, pcl}, 0 ; terminate, no immediate
+
+@0x26 ; ROL zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, zero ; load value from memory
+    rol {flag, tmp1}, {flag, tmp1} ; perform operation
+    st tmp1, {zero, tmp0}, zero ; store back to memory
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x6A ; ROR accumulator
+    ror {flag, acc}, {flag, acc}
+    term {pch, pcl}, 0 ; terminate, no immediate
+
+@0x66 ; ROR zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, zero ; load value from memory
+    ror {flag, tmp1}, {flag, tmp1} ; perform operation
+    st tmp1, {zero, tmp0}, zero ; store back to memory
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
 @0x60 ; RTS
     add {zero, sp}, {zero, sp}, one
     ld tmp0, {one, sp}, zero
     add {zero, sp}, {zero, sp}, one
     ld tmp1, {one, sp}, zero
     term {tmp1, tmp0}, 1 ; JSR leaves return-1 on the stack so add a +1 here
+
+@0xE9 ; SBC immediate
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    sub {flag, acc}, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xE5 ; SBC zero page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp0, {zero, tmp0}, zero ; load value from zero page
+    sub {flag, acc}, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x38 ; SEC
+    bit flag, flag @ 0
+    term {pch, pcl}, 0 ; terminate, no immediate
 
 @0x85 ; STA zero-page
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
@@ -108,8 +271,33 @@
     st acc, {tmp1, tmp0}, zero ; store value
     term {pch, pcl}, 2 ; terminate, skipping over 2-byte immediate
 
+@0x91 ; STA (indirect),Y
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, one ; load upper byte of indirect address
+    ld tmp0, {zero, tmp0}, zero ; load lower byte of indirect address
+    st acc, {tmp1, tmp0}, y ; load value from indirected, offset by y
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x86 ; STX zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    st x, {zero, tmp0}, zero ; store value
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x84 ; STY zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    st y, {zero, tmp0}, zero ; store value
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xAA ; TAX
+    mov {flag, x}, {flag, acc} ; Move setting flags
+    term {pch, pcl}, 0 ; terminate, no immediate
+
 @0xA8 ; TAY
     mov {flag, y}, {flag, acc} ; Move setting flags
+    term {pch, pcl}, 0 ; terminate, no immediate
+
+@0x8A ; TXA
+    mov {flag, acc}, {flag, x} ; Move setting flags
     term {pch, pcl}, 0 ; terminate, no immediate
 
 @0x9A ; TXS

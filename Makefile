@@ -18,8 +18,10 @@ ASM_TEST_DIR = $(TEST_DIR)/assembly
 ROM_DIR = rom
 VVP_DIR = vvp
 WAVE_DIR = waveforms
+INSTR_DIR = instruction-sequences
+# stores PC, IR, ACC, SP, X, Y for all macroops evaluated for a program
 
-DIRS = $(ROM_DIR) $(VVP_DIR) $(WAVE_DIR)
+DIRS = $(ROM_DIR) $(VVP_DIR) $(WAVE_DIR) $(INSTR_DIR)
 
 # Verilog common source files
 VL_SOURCE_SUPPORT = $(wildcard $(RTL_SUPPORT_DIR)/*.v)
@@ -69,8 +71,8 @@ $(VVP_DIR)/asm_v6502_%.vvp: $(ROM_DIR)/prog_$$*.hex \
 					   $(ROM_DIR)/verify_$$*.hex \
 					   $(wildcard $(RTL_DIR)/cpu_v6502/*.v) \
 					   $(wildcard $(EXT_V6502_DIR)/*.v) \
-					   $(VL_SOURCE_SUPPORT)
-	iverilog -pfileline=1  -DROMPATH=\"$<\" -DVERIFYPATH=\"$(word 2,$^)\" -DWAVEPATH=\"$(WAVE_DIR)/asm_v6502_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
+					   $(VL_SOURCE_SUPPORT) | $(INSTR_DIR)
+	iverilog -pfileline=1 -DSIM -DROMPATH=\"$<\" -DVERIFYPATH=\"$(word 2,$^)\" -DINSTRDUMP=\"$(INSTR_DIR)/instrs_$*.txt\" -DWAVEPATH=\"$(WAVE_DIR)/asm_v6502_$*.fst\" -s toplevel -o $@ $(filter %.v,$^)
 
 # For tests not running on v6502, the makefile should fall through to here and
 # not include the external libraries
@@ -106,7 +108,7 @@ $(ROM_DIR)/prog_%.bin: basic_layout.cfg $$(subst .a65,.o,$$(wildcard $(ASM_TEST_
 	ca65 -g -o $@ $<
 
 %.a65: %.c
-	cc65 -g -o $@ $<
+	cc65 -t none -g -o $@ $<
 
 $(DIRS): %:
 	mkdir -p $@
