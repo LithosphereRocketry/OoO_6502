@@ -101,14 +101,14 @@ def encode_alu(opcode: int, dst: tuple[int, int], opa: tuple[int, int], opb: int
             | opb)
 
 def encode_bit(dst: int, opa: int, bit: int, inv: bool):
-    return (0b1100 << 20
+    return (0b1011 << 20
             | dst << 12
             | opa << 4
             | (0b1000 if inv else 0)
             | bit & 0b111)
 
-def encode_mem(subop: int, srcdst: int, base: tuple[int, int], offset: int) -> int:
-    return (0b1101 << 20
+def encode_mem(opcode: int, subop: int, srcdst: int, base: tuple[int, int], offset: int) -> int:
+    return (opcode << 20
             | subop << 16
             | srcdst << 12
             | base[0] << 8
@@ -157,51 +157,47 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
                     words.append(encode_alu(0b0000, dest, opa, opb))
-                case "mov":
-                    dest, tail = parse_pair(tail)
-                    opa, tail = parse_pair(tail)
-                    words.append(encode_alu(0b0001, dest, opa, 0))
                 case "sub":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
-                    words.append(encode_alu(0b0010, dest, opa, opb))
+                    words.append(encode_alu(0b0001, dest, opa, opb))
                 case "cmp":
                     dest, tail = parse_reg(tail)
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
-                    words.append(encode_alu(0b0011, (dest, 0), opa, opb))
+                    words.append(encode_alu(0b0010, (dest, 0), opa, opb))
                 case "and":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
-                    words.append(encode_alu(0b0100, dest, opa, opb))
+                    words.append(encode_alu(0b0011, dest, opa, opb))
                 case "or":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
-                    words.append(encode_alu(0b0101, dest, opa, opb))
+                    words.append(encode_alu(0b0100, dest, opa, opb))
                 case "xor":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
-                    words.append(encode_alu(0b0110, dest, opa, opb))
+                    words.append(encode_alu(0b0101, dest, opa, opb))
                 case "sl":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
-                    words.append(encode_alu(0b0111, dest, opa, 0))
+                    words.append(encode_alu(0b0110, dest, opa, 0))
                 case "lsr":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
-                    words.append(encode_alu(0b1000, dest, opa, 0))
+                    words.append(encode_alu(0b0111, dest, opa, 0))
                 case "rol":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
-                    words.append(encode_alu(0b1001, dest, opa, 0))
+                    words.append(encode_alu(0b1000, dest, opa, 0))
                 case "ror":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)
-                    words.append(encode_alu(0b1010, dest, opa, 0))
+                    words.append(encode_alu(0b1001, dest, opa, 0))
                 case "bit":
                     dest, tail = parse_reg(tail)
                     (reg, bit, inv), tail = parse_bit(tail)
@@ -210,22 +206,22 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     dest, tail = parse_reg(tail)
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_reg(tail)
-                    words.append(encode_mem(0b0000, dest, base_addr, offset))
+                    words.append(encode_mem(0b1100, 0b0000, dest, base_addr, offset))
                 case "ldc":
                     dest, tail = parse_reg(tail)
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_reg(tail)
-                    words.append(encode_mem(0b0100, dest, base_addr, offset))
+                    words.append(encode_mem(0b1100, 0b1000, dest, base_addr, offset))
                 case "st":
                     src, tail = parse_reg(tail)
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_reg(tail)
-                    words.append(encode_mem(0b1000, src, base_addr, offset))
+                    words.append(encode_mem(0b1101, 0b0000, src, base_addr, offset))
                 case "stc":
                     src, tail = parse_reg(tail)
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_reg(tail)
-                    words.append(encode_mem(0b1100, src, base_addr, offset))
+                    words.append(encode_mem(0b1101, 0b1000, src, base_addr, offset))
                 case "cterm":
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_reg(tail)

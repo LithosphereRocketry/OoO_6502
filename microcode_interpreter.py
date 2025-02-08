@@ -92,17 +92,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x1: # mov
-            r_f_out, r_dest, r_f_in, r_a, _ = fields
-            flags = read_reg(r_f_in) & ~0b10000010 # clear zero, negative
-            result = read_reg(r_a)
-            if result & 0b10000000:
-                flags |= 0b10000000 # set negative flag
-            if result == 0:
-                flags |= 0b00000010 # set zero flag
-            write_reg(r_f_out, flags)
-            write_reg(r_dest, result)
-        case 0x2: # sub
+        case 0x1: # sub
             r_f_out, r_dest, r_f_in, r_a, r_b = fields
             flags = read_reg(r_f_in) & ~0b11000011 # clear carry, zero, overflow, negative
             result = read_reg(r_a) + ((~read_reg(r_b)) & 0xFF) + (read_reg(r_f_in) & 0b1)
@@ -118,7 +108,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x3: # cmp
+        case 0x2: # cmp
             r_f_out, _, r_f_in, r_a, r_b = fields
             flags = read_reg(r_f_in) & ~0b10000011 # clear carry, zero, negative
             result = read_reg(r_a) + ((~read_reg(r_b)) & 0xFF) + 1
@@ -131,7 +121,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
             if result == 0:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
-        case 0x4: # and
+        case 0x3: # and
             r_f_out, r_dest, r_f_in, r_a, r_b = fields
             result = read_reg(r_a) & read_reg(r_b)
             flags = read_reg(r_f_in) & ~0b10000010 # clear zero, negative
@@ -141,7 +131,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x5: # or
+        case 0x4: # or
             r_f_out, r_dest, r_f_in, r_a, r_b = fields
             result = read_reg(r_a) | read_reg(r_b)
             flags = read_reg(r_f_in) & ~0b10000010 # clear zero, negative
@@ -151,7 +141,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x6: # xor
+        case 0x5: # xor
             r_f_out, r_dest, r_f_in, r_a, r_b = fields
             result = read_reg(r_a) ^ read_reg(r_b)
             flags = read_reg(r_f_in) & ~0b10000010 # clear zero, negative
@@ -161,7 +151,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x7: # sl
+        case 0x6: # sl
             r_f_out, r_dest, r_f_in, r_a, _ = fields
             result = (read_reg(r_a) << 1) & 0xFF
             flags = read_reg(r_f_in) & ~0b10000011 # clear carry, zero, negative
@@ -173,7 +163,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x8: # lsr
+        case 0x7: # lsr
             r_f_out, r_dest, r_f_in, r_a, _ = fields
             result = read_reg(r_a) >> 1
             flags = read_reg(r_f_in) & ~0b10000011 # clear carry, zero, negative
@@ -185,7 +175,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0x9: # rol
+        case 0x8: # rol
             r_f_out, r_dest, r_f_in, r_a, _ = fields
             result = (read_reg(r_a) << 1) & 0xFF
             flags = read_reg(r_f_in) & ~0b10000011 # clear carry, zero, negative
@@ -199,7 +189,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0xA: # ror
+        case 0x9: # ror
             r_f_out, r_dest, r_f_in, r_a, _ = fields
             result = read_reg(r_a) >> 1
             flags = read_reg(r_f_in) & ~0b10000011 # clear carry, zero, negative
@@ -213,7 +203,7 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
             write_reg(r_dest, result)
-        case 0xC:
+        case 0xB: # bit
             _, r_dest, _, r_a, bitmask = fields
             inv = (bitmask & 0b1000) != 0
             bit = bitmask & 0b111
@@ -221,20 +211,26 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
                 write_reg(r_dest, r_a & ~(1 << bit))
             else:
                 write_reg(r_dest, r_a | (1 << bit))
-        case 0xD: # Memory operations
+        case 0xC: # ld
             memop_count += 1
             subop, r_val, r_hb, r_lb, r_offs = fields
-            if subop & 0b0100: # cut-carry
+            if subop & 0b1000: # cut-carry
                 addr = ((read_reg(r_hb) << 8) |
                         ((read_reg(r_lb) + read_reg(r_offs)) & 0xFF))
             else: # no cut-carry
                 addr = (((read_reg(r_hb) << 8) | read_reg(r_lb)) + read_reg(r_offs))
-            if subop & 0b1000: # store
-                return False, store(addr, read_reg(r_val))
-                # this is the only place where our program can stop (by writing
-                # to 0x4100)
-            else: # load
-                write_reg(r_val, load(addr))
+            write_reg(r_val, load(addr))
+        case 0xD: # st
+            memop_count += 1
+            subop, r_val, r_hb, r_lb, r_offs = fields
+            if subop & 0b1000: # cut-carry
+                addr = ((read_reg(r_hb) << 8) |
+                        ((read_reg(r_lb) + read_reg(r_offs)) & 0xFF))
+            else: # no cut-carry
+                addr = (((read_reg(r_hb) << 8) | read_reg(r_lb)) + read_reg(r_offs))
+            return False, store(addr, read_reg(r_val))
+            # this is the only place where our program can stop (by writing
+            # to 0x4100)
         case 0xE: # conditional terminate
             r_hb, r_lb, r_offs, r_cond, bitmask = fields
             print(bitmask)
