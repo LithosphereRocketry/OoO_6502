@@ -171,6 +171,16 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     opa, tail = parse_pair(tail)
                     opb, tail = parse_reg(tail)
                     words.append(encode_alu(0b0011, (dest, 0), opa, opb))
+                case "and":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    opb, tail = parse_reg(tail)
+                    words.append(encode_alu(0b0100, dest, opa, opb))
+                case "or":
+                    dest, tail = parse_pair(tail)
+                    opa, tail = parse_pair(tail)
+                    opb, tail = parse_reg(tail)
+                    words.append(encode_alu(0b0101, dest, opa, opb))
                 case "xor":
                     dest, tail = parse_pair(tail)
                     opa, tail = parse_pair(tail)

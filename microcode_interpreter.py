@@ -131,6 +131,26 @@ def interpret_microop(op: int) -> tuple[bool, bool]:
             if result == 0:
                 flags |= 0b00000010 # set zero flag
             write_reg(r_f_out, flags)
+        case 0x4: # and
+            r_f_out, r_dest, r_f_in, r_a, r_b = fields
+            result = read_reg(r_a) & read_reg(r_b)
+            flags = read_reg(r_f_in) & ~0b10000010 # clear zero, negative
+            if result & 0b10000000:
+                flags |= 0b10000000 # set negative flag
+            if result == 0:
+                flags |= 0b00000010 # set zero flag
+            write_reg(r_f_out, flags)
+            write_reg(r_dest, result)
+        case 0x5: # or
+            r_f_out, r_dest, r_f_in, r_a, r_b = fields
+            result = read_reg(r_a) | read_reg(r_b)
+            flags = read_reg(r_f_in) & ~0b10000010 # clear zero, negative
+            if result & 0b10000000:
+                flags |= 0b10000000 # set negative flag
+            if result == 0:
+                flags |= 0b00000010 # set zero flag
+            write_reg(r_f_out, flags)
+            write_reg(r_dest, result)
         case 0x6: # xor
             r_f_out, r_dest, r_f_in, r_a, r_b = fields
             result = read_reg(r_a) ^ read_reg(r_b)

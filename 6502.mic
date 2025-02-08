@@ -5,13 +5,13 @@
     add {flag, acc}, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
-@0x65 ; ADC zero page
+@0x65 ; ADC zero-page
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     ld tmp0, {zero, tmp0}, zero ; load value from zero page
     add {flag, acc}, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
-@0x75 ; ADC zero page, x
+@0x75 ; ADC zero-page, x
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     ldc tmp0, {zero, tmp0}, x ; load value from zero page
     add {flag, acc}, {flag, acc}, tmp0 ; perform operation
@@ -23,6 +23,27 @@
     ld tmp0, {tmp1, tmp0}, zero ; fetch indirected value
     add {flag, acc}, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 2 ; terminate, skipping over 2-byte immediate
+
+@0x71 ; ADC (indirect),Y
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, one ; load upper byte of indirect address
+    ld tmp0, {zero, tmp0}, zero ; load lower byte of indirect address
+    ld tmp0, {tmp1, tmp0}, y ; load value from indirected, offset by y
+    add {flag, acc}, {flag, acc}, tmp0
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x29 ; AND immediate
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    and {flag, acc}, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0x31 ; AND (indirect),Y
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp1, {zero, tmp0}, one ; load upper byte of indirect address
+    ld tmp0, {zero, tmp0}, zero ; load lower byte of indirect address
+    ld tmp0, {tmp1, tmp0}, y ; load value from indirected, offset by y
+    and {flag, acc}, {flag, acc}, tmp0
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
 @0x0A ; ASL accumulator
     sl {flag, acc}, {flag, acc}
@@ -55,6 +76,11 @@
     cterm {pch, pcl}, tmp0, flag @ !1 ; branch conditionally on inv. zero bit
     term {pch, pcl}, 1 ; if branch not taken, fall through
 
+@0x10 ; BPL
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    cterm {pch, pcl}, tmp0, flag @ !7 ; branch conditionally on inv. sign bit
+    term {pch, pcl}, 1 ; if branch not taken, fall through
+
 @0x18 ; CLC
     bit flag, flag @ !0
     term {pch, pcl}, 0 ; terminate, no immediate
@@ -68,10 +94,21 @@
     cmp flag, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
-@0xC5 ; CMP zero page
+@0xC5 ; CMP zero-page
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     ld tmp0, {zero, tmp0}, zero ; load value from zero page
     cmp flag, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xE0 ; CPX immediate
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    cmp flag, {flag, x}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
+@0xE4 ; CPX zero-page
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    ld tmp0, {zero, tmp0}, zero ; load value from zero page
+    cmp flag, {flag, x}, tmp0 ; perform operation
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
 @0xC0 ; CPY immediate
@@ -196,6 +233,11 @@
     st tmp1, {zero, tmp0}, zero ; store back to memory
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
+@0x09 ; ORA immediate
+    ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
+    or {flag, acc}, {flag, acc}, tmp0 ; perform operation
+    term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
+
 @0x48 ; PHA
     st acc, {one, sp}, zero ; SP points to first free byte
     sub {zero, sp}, {one, sp}, one ; point to next free
@@ -250,7 +292,7 @@
     sub {flag, acc}, {flag, acc}, tmp0 ; perform operation
     term {pch, pcl}, 1 ; terminate, skipping over 1-byte immediate
 
-@0xE5 ; SBC zero page
+@0xE5 ; SBC zero-page
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     ld tmp0, {zero, tmp0}, zero ; load value from zero page
     sub {flag, acc}, {flag, acc}, tmp0 ; perform operation
