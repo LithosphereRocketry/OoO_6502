@@ -4,7 +4,8 @@
 
 This project operates on a slightly simplified model of the 6502's interfaces:
 as with Arlet Ottens' verilog-6502 core, memory interfaces are considered to be
-synchronous.
+synchronous. Additionally, interrupts (including internal INT) and BCD mode will
+not be supported in the current version.
 
 ## Setup
 

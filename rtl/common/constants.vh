@@ -1,0 +1,2 @@
+`define FLAG_CARRY 0
+`define FLAG_OVERFLOW 6
