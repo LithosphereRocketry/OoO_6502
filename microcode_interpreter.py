@@ -15,8 +15,6 @@ memory = [-1] * (1<<16)
 
 output = []
 
-ref_instrs = open("instructions_vl.txt", "r")
-
 def regfile_to_str():
     return ("{"\
         + " ".join([
@@ -258,7 +256,7 @@ def interpret_macroop(offsets: dict[int, int], words: list[int], seq) -> bool:
     macroop = load(addr)
 
     if seq is not None:
-        line = ref_instrs.readline()
+        line = seq.readline()
         vals = [addr+1, macroop, regfile[regs["acc"]], regfile[regs["sp"]], regfile[regs["x"]], regfile[regs["y"]]]
         should_vals = [int(s.replace("xx", "-1"), 16) for s in line.split()]
         if any(i != j for i, j in zip(vals, should_vals)):
