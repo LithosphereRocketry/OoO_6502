@@ -12,4 +12,9 @@ module core(
         // input RDY;              // Ready signal. Pauses CPU when RDY=0 
     );
 
+    frontend _frontend (
+        .clk(clk),
+        .rst(rst)
+    );
+
 endmodule

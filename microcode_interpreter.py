@@ -305,14 +305,24 @@ with open("6502.mic") as f:
     with open(sys.argv[1], "rb") as prog:
         prog_data = prog.read()
         memory[(1<<15) : (1<<16)] = prog_data
-        # Manually handle the reset vector for now, until we git gud enough to
-        # handle it with a unique microcode sequence
-        write_reg(regs["pcl"], memory[0xFFFC])
-        write_reg(regs["pch"], memory[0xFFFD])
 
         seq_file = None
         if len(sys.argv) > 3:
             seq_file = open(sys.argv[3])
+
+        # Place PC pointing at the reset vector at startup
+        write_reg(regs["pcl"], 0xFC)
+        write_reg(regs["pch"], 0xFF)
+        
+        # Startup is handled by just interpreting the start of microcode ROM
+        mpc = 0
+        while True:
+            op_done, prog_done = interpret_microop(words[mpc])
+            # technically this could fail if the startup microcode ends the
+            # program, so don't do that
+            if op_done:
+                break
+            mpc += 1
 
         while interpret_macroop(offsets, words, seq_file):
             pass

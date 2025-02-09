@@ -32,7 +32,7 @@ VL_SOURCE_SUPPORT = $(wildcard $(RTL_SUPPORT_DIR)/*.v) $(wildcard $(RTL_COMMON_D
 # Verilog module unit tests
 VL_TEST_SRCS = $(wildcard $(VL_TEST_DIR)/*.v)
 VL_TEST_TGTS = $(VL_TEST_SRCS:$(VL_TEST_DIR)/%.v=vl_test_%)
-VL_TEST_ADDL = $(ROM_DIR)/hash.hex
+VL_TEST_ADDL = $(ROM_DIR)/hash.hex $(ROM_DIR)/microcode_offsets.hex $(ROM_DIR)/microcode.hex 
 
 # CPU program tests
 CPU_DIRS = $(wildcard $(RTL_DIR)/cpu_*)
@@ -63,8 +63,12 @@ $(ASM_TEST_TGTS): asm_test_%: $(VVP_DIR)/asm_%.vvp | $(WAVE_DIR)
 $(VVP_DIR)/vl_%.vvp: $(VL_TEST_DIR)/%.v $(VL_TEST_SUPPORT) $(VL_SOURCE_SUPPORT) $(VL_TEST_ADDL) | $(VVP_DIR)
 	iverilog -I$(RTL_COMMON_DIR) -pfileline=1 -DROMPATH -DVERIFYPATH -DWAVEPATH=\"$(WAVE_DIR)/vl_$*.fst\" -s $* -o $@ $(filter %.v,$^)
 
+# Generated hex files for ROM
 $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 	python3 $< > $@
+
+$(ROM_DIR)/microcode_offsets.hex $(ROM_DIR)/microcode.hex &: microcode_asm.py 6502.mic | $(ROM_DIR)
+	./$< 6502.mic $(ROM_DIR)/microcode_offsets.hex $(ROM_DIR)/microcode.hex
 
 # Special case rule for the external example v6502 to include its source files
 .SECONDEXPANSION:

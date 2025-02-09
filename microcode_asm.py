@@ -1,7 +1,12 @@
 #!/usr/bin/python
 
 import sys
+import math
 import typing
+import more_itertools
+
+# Make sure instructions start on a multiple of n words
+align = 4
 
 regnames = [
     "zero",
@@ -142,6 +147,8 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
         if line_contents == "":
             pass
         elif line_contents[0] == '@':
+            while len(words) % align != 0:
+                words.append(0)
             if not was_term:
                 raise Exception(f"Error: instruction at {lnum} not terminated!")
             opcode = int(line_contents[1:], 0)
@@ -241,7 +248,17 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
 if __name__ == "__main__":
     with open(sys.argv[1]) as f:
         offsets, words = make_microcode(f)
-        print(offsets)
-        for word in words:
-            print(hex(word))
-                
+        uop_addr_bits = math.ceil(math.log2(len(words)))
+        print("Bits in microop address:", uop_addr_bits)
+        # use 0xFFFFF... as a placeholder value, since this should never be the
+        # start address
+        uop_rom = [(1 << uop_addr_bits)-1] * 256
+        for macroop, offset in offsets.items():
+            uop_rom[macroop] = offset
+
+        hex_width = math.ceil(uop_addr_bits/4)
+        with open(sys.argv[2], "w") as f_offsets:
+            f_offsets.writelines(f"{val:0{hex_width}x}\n" for val in uop_rom)
+        with open(sys.argv[3], "w") as f_microops:
+            f_microops.writelines("".join(f"{val:06x}" for val in row) + "\n"
+                                 for row in more_itertools.ichunked(words, align))
