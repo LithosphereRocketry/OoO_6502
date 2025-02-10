@@ -32,6 +32,8 @@ module rename_decoder(
     );
 
     reg [15:0] src_arch; // combinational
+    reg [3:0] imm; // combinational
+    assign immediate = imm;
 
     rename_decoder_cell decoder_cells [3:0] (
         .arch_reg(src_arch),
@@ -47,29 +49,29 @@ module rename_decoder(
     // blah blah always @* bad
     always @* case(opcode)
         4'b1011: begin // bit
-            immediate = microop[3:0];
+            imm = microop[3:0];
             src_arch = {4'h0, microop[11:4], 4'h0};
         end
         4'b1100: begin // load
-            immediate = microop[19:16];
+            imm = microop[19:16];
             src_arch = {4'h0, microop[11:0]};
         end
         4'b1101: begin // store
-            immediate = microop[19:16];
+            imm = microop[19:16];
             src_arch = microop[15:0];
         end
         4'b1110: begin // cterm
-            immediate = microop[3:0];
-            src_arch = {microop[15:4], microp[19:16]};
+            imm = microop[3:0];
+            src_arch = {microop[15:4], microop[19:16]};
             // slightly backwards to ensure registers land in consistent locations
         end
         4'b1111: begin
-            immediate = microop[3:0];
-            src_arch = {microop[15:12], 8'h00, microp[19:16]};
+            imm = microop[3:0];
+            src_arch = {microop[15:12], 8'h00, microop[19:16]};
             // slightly backwards to ensure registers land in consistent locations
         end
         default: begin // Normal operation: 2 outputs, 3 inputs
-            immediate = 4'hx;
+            imm = 4'hx;
             src_arch = {4'h0, microop[11:0]};
         end
     endcase
