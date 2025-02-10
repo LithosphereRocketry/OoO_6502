@@ -65,7 +65,7 @@ module rename_decoder(
             src_arch = {microop[15:4], microop[19:16]};
             // slightly backwards to ensure registers land in consistent locations
         end
-        4'b1111: begin
+        4'b1111: begin // term
             imm = microop[3:0];
             src_arch = {microop[15:12], 8'h00, microop[19:16]};
             // slightly backwards to ensure registers land in consistent locations
