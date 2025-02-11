@@ -2,18 +2,18 @@ module renamer_cell(
         input [3:0] arch_reg,
 
         input [`PHYS_REGS-3:0] free_pool,
-        input [$clog2(`PHYS_REGS)*10 - 1:0] rat_aliases,
+        input [`PR_ADDR_W*10 - 1:0] rat_aliases,
         input [9:0] rat_mask,
 
         output [`PHYS_REGS-3:0] free_pool_after,
-        output [$clog2(`PHYS_REGS)*10 - 1:0] new_rat_aliases,
+        output [`PR_ADDR_W*10 - 1:0] new_rat_aliases,
         output [9:0] new_rat_mask,
 
-        output [$clog2(`PHYS_REGS)-1:0] phys_reg,
+        output [`PR_ADDR_W-1:0] phys_reg,
         output phys_reg_valid
     );
 
-    wire [$clog2(`PHYS_REGS)-1:0] chosen_reg;
+    wire [`PR_ADDR_W-1:0] chosen_reg;
     wire chosen_reg_valid;
     priority_enc encoder(
         .in(rat_done),
@@ -30,8 +30,8 @@ module renamer_cell(
     
     assign free_pool_after = free_pool & ~(does_rename << (phys_reg-2));
     assign new_rat_aliases = does_rename ?
-            rat_aliases & ~({$clog2(`PHYS_REGS){1'b1}} << ($clog2(`PHYS_REGS)*arch_reg))
-            | phys_reg << ($clog2(`PHYS_REGS)*arch_reg)
+            rat_aliases & ~({`PR_ADDR_W{1'b1}} << (`PR_ADDR_W*arch_reg))
+            | phys_reg << (`PR_ADDR_W*arch_reg)
         : rat_aliases;
     assign new_rat_mask = does_rename ? rat_mask | 1 << arch_reg : rat_mask;
 endmodule
@@ -40,21 +40,21 @@ module renamer(
         input [23:0] microop,
 
         input [`PHYS_REGS-3:0] free_pool,
-        input [$clog2(`PHYS_REGS)*10 - 1:0] rat_aliases,
+        input [`PR_ADDR_W*10 - 1:0] rat_aliases,
         input [9:0] rat_mask,
 
         output [`PHYS_REGS-3:0] free_pool_after,
-        output [$clog2(`PHYS_REGS)*10 - 1:0] new_rat_aliases,
+        output [`PR_ADDR_W*10 - 1:0] new_rat_aliases,
         output [9:0] new_rat_mask,
 
-        output [2*$clog2(`PHYS_REGS)-1:0] dst_regs,
+        output [2*`PR_ADDR_W-1:0] dst_regs,
         output rename_valid
     );
 
     reg [7:0] dst_arch; // combinational
 
     wire [`PHYS_REGS-3:0] free_pool_carry, free_pool_if_success;
-    wire [$clog2(`PHYS_REGS)*10 - 1:0] rat_aliases_carry, rat_aliases_if_success;
+    wire [`PR_ADDR_W*10 - 1:0] rat_aliases_carry, rat_aliases_if_success;
     wire [9:0] rat_mask_carry, rat_mask_if_success;
     wire [1:0] cells_valid;
 
