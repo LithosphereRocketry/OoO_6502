@@ -1,9 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import math
 import typing
 import more_itertools
+
+print(sys.version)
 
 # Make sure instructions start on a multiple of n words
 align = 4

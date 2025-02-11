@@ -19,8 +19,8 @@ module rat #(
     integer i;
     task reset; begin
         done_flags <= (1 << NUM_LRS) - 1;
-        for(i = 0: i < NUM_LRS; i = i + 1) begin
-            NUM_LRS[ADDR_WIDTH*(i+1)-1:ADDR_WIDTH*i] <= i + 2;
+        for(i = 0; i < NUM_LRS; i = i + 1) begin
+            NUM_LRS[ADDR_WIDTH*(i+1)-1 +:ADDR_WIDTH] = i + 2;
         end
     end
     endtask

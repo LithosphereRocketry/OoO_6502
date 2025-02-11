@@ -63,14 +63,14 @@ module issue_buff_ooo #(
 
     wire [$clog2(ELEMENTS):0] output_ind;
 
-    priority_enc _find_first_valid #(.WIDTH(ELEMENTS)) (
+    priority_enc #(.WIDTH(ELEMENTS)) _find_first_valid (
         .in(valid_mask),
         .any(dout_valid),
         .out(output_ind)
-    )
+    );
 
-    assign dout = instr_outputs[DATA_WIDTH*(output_ind+1)-1:DATA_WIDTH*output_ind];
-    assign output_enable_mask = (dout_ready? (1 << output_ind) : 0)
+    assign dout = instr_outputs[DATA_WIDTH*(output_ind+1)-1 +:DATA_WIDTH];
+    assign output_enable_mask = (dout_ready? (1 << output_ind) : 0);
 
     integer input_index;
     always @(posedge clk) if(rst) reset(); else begin
@@ -79,7 +79,7 @@ module issue_buff_ooo #(
         for(i = 0; i < ELEMENTS; i = i + 1) begin
             if(input_index < din_valid_ct) begin
                 if(available_mask[i] == 1) begin
-                    instr_inputs[DATA_WIDTH*(i+1)-1:DATA_WIDTH*i] <= din[DATA_WIDTH*(input_index+1)-1:DATA_WIDTH*input_index];
+                    instr_inputs[DATA_WIDTH*(i+1)-1 +:DATA_WIDTH] <= din[DATA_WIDTH*(input_index+1)-1 +:DATA_WIDTH];
                     write_enable_mask[i] = 1;
                     input_index <= input_index + 1;
                 end

@@ -57,8 +57,8 @@ module alu(
              : (opcode == 4'h3 | opcode == 4'h4 | opcode == 4'h5 | opcode == 4'hB) ? q_shifter
              : q_bitwise;
     
-    wire [7:0] f_common = f_module & ~((1 << `FLAG_NEGATIVE) | (1 << `FLAG_ZERO))
-                        | (q[7] << `FLAG_NEGATIVE) | ((q == 8'h00) << `FLAG_ZERO);
+    wire [7:0] f_common = f_module & ~((1 << FLAG_NEGATIVE) | (1 << FLAG_ZERO))
+                        | (q[7] << FLAG_NEGATIVE) | ((q == 8'h00) << FLAG_ZERO);
     
     // Weird edge case for BIT macroop
     wire [7:0] f_bittest = {b[7:6], f_common[5:0]};

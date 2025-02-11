@@ -26,7 +26,7 @@ module issue_entry #(
 
     assign input_ready = empty | output_ready;
     assign output_valid = !empty | input_valid;
-    assign instr_out <= (empty? instr : flagged_data);
+    assign instr_out = empty? instr : flagged_data;
 
     integer i;
     always @(*) begin
@@ -39,12 +39,12 @@ module issue_entry #(
     initial reset();
 
     always @(posedge clk) if(rst) reset(); else begin
-        data <= ((input_valid & input_ready) ? instr : flagged_data)
-        if (empty) begin
-            empty <= !(input_valid & input_ready & output_ready)
+        data <= ((input_valid & input_ready) ? instr : flagged_data);
+        if(empty) begin
+            empty <= !(input_valid & input_ready & output_ready);
         end
         else begin
-            empty <= output_ready & !(input_ready & input_valid)
+            empty <= output_ready & !(input_ready & input_valid);
         end
     end
 
