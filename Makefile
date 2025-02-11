@@ -68,7 +68,7 @@ $(ROM_DIR)/hash.hex: $(TOOLS_DIR)/romfuzz.py | $(ROM_DIR)
 	python3 $< > $@
 
 $(ROM_DIR)/microcode_offsets.hex $(ROM_DIR)/microcode.hex &: microcode_asm.py 6502.mic | $(ROM_DIR)
-	./$< 6502.mic $(ROM_DIR)/microcode_offsets.hex $(ROM_DIR)/microcode.hex
+	python3 $< 6502.mic $(ROM_DIR)/microcode_offsets.hex $(ROM_DIR)/microcode.hex
 
 # Special case rule for the external example v6502 to include its source files
 .SECONDEXPANSION:
