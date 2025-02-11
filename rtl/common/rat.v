@@ -9,13 +9,10 @@ module rat #(
         input assignments_valid,
         input done_flags_ready,
 
-        output [NUM_LRS*ADDR_WIDTH-1:0] assignments_out,
-        output [NUM_LRS-1:0] done_flags_out
+        output [NUM_LRS*ADDR_WIDTH-1:0] assignments,
+        output [NUM_LRS-1:0] done_flags
     );
-
-    reg [NUM_LRS*ADDR_WIDTH-1:0] assignments;
-    reg [NUM_LRS-1:0] done_flags;
-
+    
     integer i;
     task reset; begin
         done_flags <= (1 << NUM_LRS) - 1;
@@ -24,5 +21,10 @@ module rat #(
         end
     end
     endtask
+
+    always @(posedge clk) if(rst) reset(); else begin
+        if(assignments_valid) assignments <= assignments_in;
+        if(done_flags_ready) done_flags <= done_flags_in;
+    end
 
 endmodule
