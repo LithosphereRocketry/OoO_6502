@@ -12,15 +12,14 @@ module rat #(
         output [NUM_LRS*ADDR_WIDTH-1:0] assignments,
         output [NUM_LRS-1:0] done_flags
     );
-    
+
     integer i;
     task reset; begin
         done_flags <= (1 << NUM_LRS) - 1;
-        for(i = 0; i < NUM_LRS; i = i + 1) begin
-            NUM_LRS[ADDR_WIDTH*(i+1)-1 +:ADDR_WIDTH] = i + 2;
-        end
     end
     endtask
+
+    initial reset();
 
     always @(posedge clk) if(rst) reset(); else begin
         if(assignments_valid) assignments <= assignments_in;
