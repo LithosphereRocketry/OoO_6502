@@ -3,19 +3,21 @@ Translates source portion of microops into physical registers based on contents
 of RAT
 */
 
+`include "constants.vh"
+
 module rename_decoder_cell(
         input [3:0] arch_reg,
 
         input [9:0] rat_done,
-        input [$clog2(PHYS_REGS)*10 - 1:0] rat_aliases,
+        input [$clog2(`PHYS_REGS)*10 - 1:0] rat_aliases,
 
-        output [$clog2(PHYS_REGS)-1:0] phys_reg,
+        output [$clog2(`PHYS_REGS)-1:0] phys_reg,
         output ready
     );
 
     assign phys_reg = arch_reg == 4'h0 ? 5'h00
                     : arch_reg == 4'h1 ? 5'h01
-                    : rat_aliases[(arch_reg-2)*$clog2(PHYS_REGS) +: $clog2(PHYS_REGS)];
+                    : rat_aliases[(arch_reg-2)*$clog2(`PHYS_REGS) +: $clog2(`PHYS_REGS)];
     assign ready = arch_reg == 4'h0 | arch_reg == 4'h1 ? 1'b1
                 : rat_done[arch_reg-2];
 endmodule
@@ -24,9 +26,9 @@ module rename_decoder(
         input [23:0] microop,
 
         input [9:0] rat_done,
-        input [$clog2(PHYS_REGS)*10 - 1:0] rat_aliases,
+        input [$clog2(`PHYS_REGS)*10 - 1:0] rat_aliases,
 
-        output [$clog2(PHYS_REGS)*4-1:0] src_regs,
+        output [$clog2(`PHYS_REGS)*4-1:0] src_regs,
         output [3:0] src_ready,
         output [3:0] immediate
     );

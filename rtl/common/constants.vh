@@ -22,3 +22,6 @@
 // 4 opcode bits, 2 destination fields, 3 source fields
 `define RENAMED_OP_SZ (4 + 2*$clog2(`PHYS_REGS) + 3*9)
 
+// Register meanings
+`define REG_PCH 4'h2
+`define REG_PCL 4'h3
