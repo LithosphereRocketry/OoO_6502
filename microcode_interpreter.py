@@ -309,15 +309,11 @@ with open("6502.mic") as f:
         seq_file = None
         if len(sys.argv) > 3:
             seq_file = open(sys.argv[3])
-
-        # Place PC pointing at the reset vector at startup
-        write_reg(regs["pcl"], 0xFC)
-        write_reg(regs["pch"], 0xFF)
-        
+                
         # Startup is handled by just interpreting the start of microcode ROM
         mpc = 0
         while True:
-            op_done, prog_done = interpret_microop(words[mpc])
+            op_done, _ = interpret_microop(words[mpc])
             # technically this could fail if the startup microcode ends the
             # program, so don't do that
             if op_done:

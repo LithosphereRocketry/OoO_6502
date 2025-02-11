@@ -14,6 +14,7 @@ module priority_enc #(parameter WIDTH = 8) (
     // I kinda hate always @* but it makes life easier here
     always @* begin
         any = 0;
+        out = {WIDTH{1'bx}};
         for(i = 0; i < WIDTH; i = i+1) begin
             if(~any & in[i]) begin
                 any = 1;
