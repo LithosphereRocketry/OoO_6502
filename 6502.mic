@@ -1,8 +1,12 @@
 ; Based on http://www.6502.org/users/obelisk/6502/reference.html
 
 ; Startup code
-    ld tmp0, {pch, pcl}, zero ; load lower byte of vector
-    ld tmp1, {pch, pcl}, one ; load upper byte of vector
+    ; we use tmp2 as temporary PCH and tmp1 as temporary PCL
+    sub {zero, tmp2}, {one, zero}, one ; tmp2 = 0 - 1 = 0xFF
+    sub {zero, tmp1}, {zero, zero}, one ; tmp1 = 0 - 1 - 1 = 0xFE
+    sub {zero, tmp1}, {zero, tmp1}, one ; tmp1 = 0xFE - 1 - 1 = 0xFC
+    ld tmp0, {tmp2, tmp1}, zero ; load lower byte of vector
+    ld tmp1, {tmp2, tmp1}, one ; load upper byte of vector
     term {tmp1, tmp0}, 0 ; jump to result of vector
 
 @0x69 ; ADC immediate
