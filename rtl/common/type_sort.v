@@ -1,9 +1,7 @@
 // Only supports issuing one per type for now - TODO add more later
 
-// TODO: WRONG: needs to act on physical rather than logical instructions
-
 module type_sort_cell (
-        input [23:0] instr_in,
+        input [46:0] instr_in,
         input instr_valid,
 
         input was_terminated,
@@ -28,13 +26,13 @@ module type_sort_cell (
         output used
     );
 
-    wire [3:0] opcode = instr_in[23:20];
+    wire [3:0] opcode = instr_in[46:43];
 
     wire op_is_alu = instr_valid & opcode[3:2] != 2'b11;
     assign is_alu = ~was_terminated & ~had_alu & op_is_alu;
     assign has_alu = had_alu | is_alu;
 
-    wire is_nop = op_is_alu & instr_in[19:12] == 8'h00; // ALU op with no dest = nop
+    wire is_nop = op_is_alu & instr_in[42:33] == 8'h00; // ALU op with no dest = nop
 
     wire op_is_mem = instr_valid & opcode[3:1] == 3'b110;
     assign is_mem = ~was_terminated & ~had_mem & op_is_mem;
@@ -52,17 +50,17 @@ module type_sort_cell (
 endmodule
 
 module type_sort #(parameter FETCH_WIDTH = 4) (
-        input [FETCH_WIDTH*24-1:0] instr_in,
+        input [FETCH_WIDTH*47-1:0] instr_in,
         input [FETCH_WIDTH-1:0] instr_valid,
         output [FETCH_WIDTH-1:0] instr_used,
 
-        output [23:0] instr_alu,
+        output [46:0] instr_alu,
         output instr_alu_valid,
         input instr_alu_ready,
-        output [23:0] instr_mem,
+        output [46:0] instr_mem,
         output instr_mem_valid,
         input instr_mem_ready,
-        output [23:0] instr_term,
+        output [46:0] instr_term,
         output instr_term_valid,
         input instr_term_ready,
         output terminate
@@ -105,8 +103,8 @@ module type_sort #(parameter FETCH_WIDTH = 4) (
         .out({ind_alu, ind_mem, ind_term})
     );
 
-    assign instr_alu = instr_in[ind_alu*24 +: 24];
-    assign instr_mem = instr_in[ind_mem*24 +: 24];
-    assign instr_term = instr_in[ind_term*24 +: 24];
+    assign instr_alu = instr_in[ind_alu*47 +: 47];
+    assign instr_mem = instr_in[ind_mem*47 +: 47];
+    assign instr_term = instr_in[ind_term*47 +: 47];
 
 endmodule

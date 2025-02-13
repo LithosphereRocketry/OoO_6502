@@ -19,7 +19,7 @@ module rob #(
         output [$clog2(PUSH_WIDTH):0] dout_valid_ct,
         input [$clog2(PUSH_WIDTH):0] dout_ready_ct,
 
-        output [($clog2(ELEMENTS+1)+1)*PUSH_WIDTH-1:0] entry_nums,
+        output [($clog2(ELEMENTS+1)+1)*4-1:0] entry_nums,
 
         input [($clog2(ELEMENTS+1)+1)*PUSH_WIDTH-1:0] completed,
         input [$clog2(PUSH_WIDTH):0] cmplt_valid_ct
@@ -53,7 +53,7 @@ module rob #(
 
     integer i;
     always @(*) begin
-        for(i = 0; i < PUSH_WIDTH; i = i + 1) begin
+        for(i = 0; i < 4; i = i + 1) begin
             if(write_ptr + i < SLOTS) entry_nums[ADDR_WIDTH*(i + 1)-1 +: ADDR_WIDTH] <= write_ptr + 1;
             else entry_nums[ADDR_WIDTH*(i + 1)-1 +: ADDR_WIDTH] <= write_ptr + 1 - SLOTS;
         end

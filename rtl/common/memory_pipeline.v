@@ -23,11 +23,11 @@ integer lower_bits;
 
 always @(posedge clk) begin
     if(input_valid & input_ready) begin
-        if(mem_opcode[0]) mem_addr <= base_val + offset;
-        else begin
+        if(mem_opcode[0]) begin
             lower_bits = base_val[7:0] + offset;
             mem_addr <= {base_val[15:8], lower_bits[7:0]};
         end
+        else mem_addr <= base_val + offset;
         dest_reg_out <= dest_reg;
         data_out <= data;
         store_out <= store;
