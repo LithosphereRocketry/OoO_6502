@@ -1,6 +1,6 @@
 module uop_fetch_ctrl #(
         parameter UCR_ADDR_WIDTH = 8,
-        parameter ISSUE_WIDTH = 4
+        parameter FETCH_WIDTH = 4
     ) (
         input rst,
         input clk,
@@ -26,5 +26,5 @@ module uop_fetch_ctrl #(
     assign uop_pc = macro_fetch ? incoming_offset : step_pc;
 
     always @(posedge clk) if(rst) reset();
-                          else if(uop_pc_ready) step_pc <= uop_pc + ISSUE_WIDTH;
+                          else if(uop_pc_ready) step_pc <= uop_pc + FETCH_WIDTH;
 endmodule

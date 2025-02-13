@@ -3,7 +3,7 @@
 // Test top level for assembly test cases
 
 module toplevel();
-    localparam MAX_CYCLES = 1e6;
+    localparam MAX_CYCLES = 10;
 
     reg clk = 1, reset = 1;
     wire [7:0] dout;

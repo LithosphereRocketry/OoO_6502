@@ -12,9 +12,14 @@ module core(
         // input RDY;              // Ready signal. Pauses CPU when RDY=0 
     );
 
-    frontend _frontend (
+    cpu_ooo cpu(
         .clk(clk),
-        .rst(rst)
+        .rst(rst),
+
+        .addr_i(addr),
+        .din_i(data_in)
+        
+        // TODO: second port
     );
 
 endmodule

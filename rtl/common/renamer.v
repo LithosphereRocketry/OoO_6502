@@ -1,13 +1,15 @@
+// TODO: WRONG: renamer cell needs to not attempt to rename out of order
+
 module renamer_cell(
         input [3:0] arch_reg,
 
         input [`PHYS_REGS-3:0] free_pool,
         input [`PR_ADDR_W*10 - 1:0] rat_aliases,
-        input [9:0] rat_mask,
+        input [9:0] rat_done,
 
         output [`PHYS_REGS-3:0] free_pool_after,
         output [`PR_ADDR_W*10 - 1:0] new_rat_aliases,
-        output [9:0] new_rat_mask,
+        output [9:0] new_rat_done,
 
         output [`PR_ADDR_W-1:0] phys_reg,
         output phys_reg_valid
