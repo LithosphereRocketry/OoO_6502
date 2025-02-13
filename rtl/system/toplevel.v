@@ -6,8 +6,10 @@ module toplevel();
     localparam MAX_CYCLES = 1e6;
 
     reg clk = 1, reset = 1;
-    wire [7:0] dout;
-    wire d_write;
+    wire [7:0] dout1;
+    wire [7:0] dout2;
+    wire d_write1;
+    wire d_write2;
     wire done;
 
     integer count = 0;
@@ -16,8 +18,10 @@ module toplevel();
     system dut(
         .clk(clk),
         .rst(reset),
-        .dport_out(dout),
-        .dport_write(d_write),
+        .dport_out1(dout1),
+        .dport_out2(dout2),
+        .dport_write1(d_write1),
+        .dport_write2(d_write2),
         .done(done)
     );
 
@@ -46,9 +50,15 @@ module toplevel();
             $finish;
         end else begin
             count ++;
-            if(d_write) begin
+            if(d_write1) begin
                 if(ds_ptr <= 8'hff) begin
-                    datastream[ds_ptr] <= dout;
+                    datastream[ds_ptr] <= dout1;
+                    ds_ptr <= ds_ptr + 8'd1;
+                end
+            end
+            if(d_write2) begin
+                if(ds_ptr <= 8'hff) begin
+                    datastream[ds_ptr] <= dout2;
                     ds_ptr <= ds_ptr + 8'd1;
                 end
             end
