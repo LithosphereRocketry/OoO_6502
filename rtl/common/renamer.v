@@ -50,11 +50,13 @@ module renamer(
         output [`PR_ADDR_W*10 - 1:0] new_rat_aliases,
         output [9:0] new_rat_mask,
 
+        output [7:0] dst_arch_regs,
         output [2*`PR_ADDR_W-1:0] dst_regs,
         output rename_valid
     );
 
     reg [7:0] dst_arch; // combinational
+    assign dst_arch_regs = dst_arch;
 
     wire [`PHYS_REGS-3:0] free_pool_carry, free_pool_if_success;
     wire [`PR_ADDR_W*10 - 1:0] rat_aliases_carry, rat_aliases_if_success;
