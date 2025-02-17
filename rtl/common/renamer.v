@@ -12,6 +12,7 @@ module renamer_cell(
         output [9:0] new_rat_done,
 
         output [`PR_ADDR_W-1:0] phys_reg,
+        output [`PR_ADDR_W-1:0] old_reg,
         output phys_reg_valid
     );
 
@@ -26,6 +27,9 @@ module renamer_cell(
     assign phys_reg = arch_reg == 4'h0 ? 0
                     : arch_reg == 4'h1 ? 1
                     : chosen_reg + 2;
+    assign old_reg = arch_reg == 4'h0 ? 0
+                   : arch_reg == 4'h1 ? 1
+                   : rat_aliases[`PR_ADDR_W*chosen_reg +: `PR_ADDR_W];
 
     wire does_rename = arch_reg != 4'h0 & arch_reg != 4'h1;
     assign phys_reg_valid = ~does_rename | chosen_reg_valid;
@@ -52,6 +56,7 @@ module renamer(
 
         output [7:0] dst_arch_regs,
         output [2*`PR_ADDR_W-1:0] dst_regs,
+        output [2*`PR_ADDR_W-1:0] old_regs,
         output rename_valid
     );
 
@@ -75,6 +80,7 @@ module renamer(
         .new_rat_mask({rat_mask_carry, rat_mask_if_success}),
 
         .phys_reg(dst_regs),
+        .old_reg(old_regs).
         .phys_reg_valid(cells_valid)
     );
     assign rename_valid = prev_rename_valid & &cells_valid;
