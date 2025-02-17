@@ -40,6 +40,7 @@ endmodule
 
 module renamer(
         input [23:0] microop,
+        input prev_rename_valid,
 
         input [`PHYS_REGS-3:0] free_pool,
         input [`PR_ADDR_W*10 - 1:0] rat_aliases,
@@ -74,7 +75,7 @@ module renamer(
         .phys_reg(dst_regs),
         .phys_reg_valid(cells_valid)
     );
-    assign rename_valid = &cells_valid;
+    assign rename_valid = prev_rename_valid & &cells_valid;
     assign free_pool_after = rename_valid ? free_pool_if_success : free_pool;
     assign new_rat_aliases = rename_valid ? rat_aliases_if_success : rat_aliases;
     assign new_rat_mask = rename_valid ? rat_mask_if_success : rat_mask;

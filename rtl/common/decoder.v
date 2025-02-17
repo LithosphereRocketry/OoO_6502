@@ -10,12 +10,12 @@ module decoder_cell(
         output logical_instr_ready,  
 
         input [`PHYS_REGS-3:0] free_pool,
-        input [10*`PR_ADDR_W-1] rat_aliases,
+        input [10*`PR_ADDR_W-1:0] rat_aliases,
         input [9:0] rat_done,
         input [4:0] ROB_entry,
 
         output [`PHYS_REGS-3:0] free_pool_after,
-        output [10*`PR_ADDR_W-1] new_rat_aliases,
+        output [10*`PR_ADDR_W-1:0] new_rat_aliases,
         output [9:0] old_rat_aliases,
 
         output [`RENAMED_OP_SZ-1:0] decoded_instr,
@@ -28,7 +28,7 @@ module decoder_cell(
     wire [3:0] immediate;
     reg [9:0] dest_regs, old_rat_aliases_tmp;
     reg [`PHYS_REGS-3:0] free_pool_tmp;
-    reg [10*`PR_ADDR_W-1] rat_aliases_tmp;
+    reg [10*`PR_ADDR_W-1:0] rat_aliases_tmp;
 
     rename_decoder _decode(
         .microop(logical_instr),
@@ -54,8 +54,8 @@ module decoder_cell(
             rat_aliases_tmp = rat_aliases;
             old_rat_aliases_tmp = {10{1'b0}};
             dest_regs = {10{1'b0}};
-            if (logical_instr[23:20] == 0'b1100) num_assign = 1;
-            else if (logical_instr[23:22] == 0'11) num_assign = 0;
+            if (logical_instr[23:20] == 4'b1100) num_assign = 1;
+            else if (logical_instr[23:22] == 2'b11) num_assign = 0;
             else num_assign = 2;
             for(i = 0; i < `PHYS_REGS-2; i = i + 1) if(to_assign < num_assign) begin
                 while((logical_instr[11+4*to_assign +: 4] == 4'b0 | logical_instr[11+4*to_assign +: 4] == 4'b1) & to_assign < num_assign) begin
