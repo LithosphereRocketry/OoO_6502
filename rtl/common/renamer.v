@@ -7,7 +7,7 @@ module renamer_cell(
         input [`PR_ADDR_W*10 - 1:0] rat_aliases,
         input [9:0] rat_done,
 
-        output [`PHYS_REGS-3:0] free_pool_after,
+        output [`PHYS_REGS-3:0] new_free_pool,
         output [`PR_ADDR_W*10 - 1:0] new_rat_aliases,
         output [9:0] new_rat_done,
 
@@ -30,7 +30,7 @@ module renamer_cell(
     wire does_rename = arch_reg != 4'h0 & arch_reg != 4'h1;
     assign phys_reg_valid = ~does_rename | chosen_reg_valid;
     
-    assign free_pool_after = free_pool & ~(does_rename << (phys_reg-2));
+    assign new_free_pool = free_pool & ~(does_rename << (phys_reg-2));
     assign new_rat_aliases = does_rename ?
             rat_aliases & ~({`PR_ADDR_W{1'b1}} << (`PR_ADDR_W*arch_reg))
             | phys_reg << (`PR_ADDR_W*arch_reg)
@@ -46,7 +46,7 @@ module renamer(
         input [`PR_ADDR_W*10 - 1:0] rat_aliases,
         input [9:0] rat_mask,
 
-        output [`PHYS_REGS-3:0] free_pool_after,
+        output [`PHYS_REGS-3:0] new_free_pool,
         output [`PR_ADDR_W*10 - 1:0] new_rat_aliases,
         output [9:0] new_rat_mask,
 
@@ -68,7 +68,7 @@ module renamer(
         .rat_aliases({rat_aliases, rat_aliases_carry}),
         .rat_mask({rat_mask, rat_mask_carry}),
 
-        .free_pool_after({free_pool_carry, free_pool_if_success}),
+        .new_free_pool({free_pool_carry, free_pool_if_success}),
         .new_rat_aliases({rat_aliases_carry, rat_aliases_if_success}),
         .new_rat_mask({rat_mask_carry, rat_mask_if_success}),
 
@@ -76,7 +76,7 @@ module renamer(
         .phys_reg_valid(cells_valid)
     );
     assign rename_valid = prev_rename_valid & &cells_valid;
-    assign free_pool_after = rename_valid ? free_pool_if_success : free_pool;
+    assign new_free_pool = rename_valid ? free_pool_if_success : free_pool;
     assign new_rat_aliases = rename_valid ? rat_aliases_if_success : rat_aliases;
     assign new_rat_mask = rename_valid ? rat_mask_if_success : rat_mask;
 
