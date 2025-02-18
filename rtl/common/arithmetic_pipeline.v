@@ -7,6 +7,7 @@ module arithmetic_pipeline(
         input [7:0] op_a_val,
         input [7:0] op_b_val,
         input [7:0] flags_val,
+        input [7:0] arch_dest_regs,
 
         input instr_valid,
 
@@ -14,7 +15,8 @@ module arithmetic_pipeline(
         output [4:0] dest_reg_out,
         output [4:0] flag_reg_out,
         output [7:0] result_val,
-        output [7:0] result_flags
+        output [7:0] result_flags,
+        output [7:0] arch_dest_regs_out
     );
 
     wire [7:0] alu_result;
@@ -38,6 +40,7 @@ module arithmetic_pipeline(
             flag_reg_out <= flag_reg;
             result_val <= alu_result;
             result_flags <= alu_flags;
+            arch_dest_regs_out <= arch_dest_regs;
         end
     end
 

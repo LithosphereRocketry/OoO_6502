@@ -5,7 +5,7 @@ module memory_pipeline(
     input [7:0] offset,
     input [4:0] dest_reg,
     input [7:0] data,
-    input store,
+    input [3:0] imm,
     input input_valid,
     output input_ready,
 
@@ -23,7 +23,7 @@ integer lower_bits;
 
 always @(posedge clk) begin
     if(input_valid & input_ready) begin
-        if(mem_opcode[0]) begin
+        if(imm[3]) begin
             lower_bits = base_val[7:0] + offset;
             mem_addr <= {base_val[15:8], lower_bits[7:0]};
         end
