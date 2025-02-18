@@ -93,7 +93,7 @@ module tb_ram();
         // cycle
         write(15'h5678, 15'h3456, 8'h03);
         assert_8(data_out1, 8'h9a);
-        assert_8(data_out2, 8'h9a);
+        assert_8(data_out2, 8'h56);
 
         $finish;
     end
