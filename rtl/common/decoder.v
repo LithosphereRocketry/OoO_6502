@@ -144,17 +144,18 @@ module decoder #(
     //assign done_flags_in = done_flags;
 
     // set done flags for completed instructions
-    integer i;
+    integer j;
     always @(*) begin
         done_flags_in = interim_done_flags[9:0];
-        for(i = 0; i < 6; i = i + 1) begin
-            if (cmplt_free_regs[5*(i+1)-1 +: 5] > 1) free_pool[cmplt_free_regs[5*(i+1)-1 +: 5]-2] = 1;
-            done_flags_in[cmplt_dest_regs[4*(i+1)-1 +: 4]] = 1;
+        for(j = 0; j < 6; j = j + 1) begin
+            if (cmplt_free_regs[5*(j+1)-1 +: 5] > 1) free_pool[cmplt_free_regs[5*(j+1)-1 +: 5]-2] = 1;
+            done_flags_in[cmplt_dest_regs[4*(j+1)-1 +: 4]] = 1;
         end
     end
 
     integer last_valid;
     integer reached_invalid;
+    integer i;
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid > 0 & logical_instrs_ready) instructions = logical_instrs;
 
