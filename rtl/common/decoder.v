@@ -155,13 +155,13 @@ module decoder #(
 
     integer last_valid;
     integer reached_invalid;
-    integer i;
+    integer k;
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid > 0 & logical_instrs_ready) instructions = logical_instrs;
 
         reached_invalid = 0;
         last_valid = 4;
-        for(i = 0; i < 4; i = i + 1) if(decoded_instrs_valid[3-i] & decoded_instrs_ready[3-i] & reached_invalid == 0) begin
+        for(k = 0; k < 4; k = k + 1) if(decoded_instrs_valid[3-k] & decoded_instrs_ready[3-k] & reached_invalid == 0) begin
             last_valid = last_valid - 1;
         end else reached_invalid = 1;
 
@@ -173,7 +173,7 @@ module decoder #(
         logical_instrs_valid <= logical_instrs_valid << last_valid;
 
         if(last_valid > 0) begin
-            for(i = 0; i < last_valid; i = i + 1) decoded_instrs_valid_tmp[i] <= 0;
+            for(k = 0; k < last_valid; k = k + 1) decoded_instrs_valid_tmp[k] <= 0;
             logical_instrs_ready <= 0;
         end else begin
             logical_instrs_ready <= 1;
