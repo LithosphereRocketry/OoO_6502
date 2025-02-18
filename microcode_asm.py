@@ -149,8 +149,6 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
         if line_contents == "":
             pass
         elif line_contents[0] == '@':
-            while len(words) % align != 0:
-                words.append(0)
             if not was_term:
                 raise Exception(f"Error: instruction at {lnum} not terminated!")
             opcode = int(line_contents[1:], 0)
@@ -236,10 +234,14 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     offset, tail = parse_reg(tail)
                     (reg, bit, inv), tail = parse_bit(tail)
                     words.append(encode_cterm(base_addr, offset, reg, bit, inv))
+                    while len(words) % align != 0:
+                        words.append(0)
                 case "term":
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_int(tail)
                     words.append(encode_term(base_addr, offset))
+                    while len(words) % align != 0:
+                        words.append(0)
                     was_term = True
                 case _:
                     print("Unrecognized uopcode", uop)
