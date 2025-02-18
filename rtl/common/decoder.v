@@ -158,6 +158,7 @@ module decoder #(
     integer k;
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid > 0 & logical_instrs_ready) instructions = logical_instrs;
+        
 
         reached_invalid = 0;
         last_valid = 4;
