@@ -27,6 +27,8 @@ module frontend(
     wire sort_alu_valid, sort_mem_valid, sort_term_valid;
     wire sort_alu_ready = 1, sort_mem_ready = 1, sort_term_ready = 1;
     wire sort_has_terminate;
+    
+    reg [FETCH_WIDTH-1:0] instrs_waiting;
 
     // TODO: WRONG: Sort has to happen after decoding
     type_sort #(FETCH_WIDTH) sort (
@@ -45,7 +47,6 @@ module frontend(
         .terminate(sort_has_terminate)
     );
 
-    reg [FETCH_WIDTH-1:0] instrs_waiting;
     reg terminated;
 
     wire [FETCH_WIDTH-1:0] next_instrs_waiting = instrs_waiting & ~(sort_instr_used);
