@@ -1,17 +1,19 @@
 module memory_pipeline(
     input clk,
-    input [4:0] mem_opcode,
+    input [3:0] opcode,
     input [15:0] base_val,
     input [7:0] offset,
     input [4:0] dest_reg,
     input [7:0] data,
     input [3:0] imm,
+    input [7:0] dest_arch_regs,
     input input_valid,
     output input_ready,
 
     output [15:0] mem_addr,
     output [4:0] dest_reg_out,
     output [7:0] data_out,
+    output [7:0] dest_arch_regs_out,
     output store_out,
     output output_valid,
     input output_ready
@@ -30,7 +32,8 @@ always @(posedge clk) begin
         else mem_addr <= base_val + offset;
         dest_reg_out <= dest_reg;
         data_out <= data;
-        store_out <= store;
+        store_out <= opcode[0];
+        dest_arch_regs_out <= dest_arch_regs;
         output_valid = 1;
     end
     else output_valid = 0;
