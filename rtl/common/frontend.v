@@ -1,14 +1,20 @@
-module frontend(
+module frontend #(
+    localparam FETCH_WIDTH = 4
+) (
         input clk,
         input rst,
 
         input wakeup,
         input [7:0] instr,
         input instr_valid,
-        output instr_ready
-    );
+        output instr_ready,
 
-    localparam FETCH_WIDTH = 4;
+        input [29:0] cmplt_free_regs,
+        input [23:0] cmplt_dest_regs,
+        input [19:0] ROB_entries,
+
+        output [10*FETCH_WIDTH-1:0] decoded_old_aliases
+    );
 
     wire microops_ready;
     wire [FETCH_WIDTH*24-1:0] microops;
@@ -16,66 +22,49 @@ module frontend(
     uop_fetch #(FETCH_WIDTH) fetch (
         .clk(clk),
         .rst(rst),
-        .fetch(instr_valid),
+        .fetch(wakeup & instr_valid),
         .macroop_in(instr),
         .microops_ready(microops_ready),
         .microops(microops)
     );
 
-    wire [23:0] sort_instr_alu, sort_instr_mem, sort_instr_term;
-    wire [FETCH_WIDTH-1:0] sort_instr_used;
-    wire sort_alu_valid, sort_mem_valid, sort_term_valid;
-    wire sort_alu_ready = 1, sort_mem_ready = 1, sort_term_ready = 1;
-    wire sort_has_terminate;
-    
-    reg [FETCH_WIDTH-1:0] instrs_waiting;
+    wire [FETCH_WIDTH-1:0] decoded_instrs_ready, decoded_instrs_valid;
 
-    // TODO: WRONG: Sort has to happen after decoding
-    type_sort #(FETCH_WIDTH) sort (
-        .instr_in(microops),
-        .instr_valid(instrs_waiting),
-        .instr_used(sort_instr_used),
-        .instr_alu(sort_instr_alu),
-        .instr_alu_valid(sort_alu_valid),
-        .instr_alu_ready(sort_alu_ready),
-        .instr_mem(sort_instr_mem),
-        .instr_mem_valid(sort_mem_valid),
-        .instr_mem_ready(sort_mem_ready),
-        .instr_term(sort_instr_term),
-        .instr_term_valid(sort_term_valid),
-        .instr_term_ready(sort_term_ready),
-        .terminate(sort_has_terminate)
-    );
-
-    reg terminated;
-
-    wire [FETCH_WIDTH-1:0] next_instrs_waiting = instrs_waiting & ~(sort_instr_used);
-
-    assign microops_ready = ~terminated & ~sort_has_terminate & (next_instrs_waiting == 0);
-
-    task reset; begin
-        instrs_waiting <= {FETCH_WIDTH{1'b1}};
-        terminated <= 0;
-    end endtask
-    initial reset();
-
-    // TODO: not done (either instantiation or this module)
-    decoder #(3) dec(
+    decoder #(FETCH_WIDTH) _decoder(
         .clk(clk),
         .rst(rst),
 
-        .logical_instrs({sort_instr_term, sort_instr_mem, sort_instr_alu}),
-        .logical_instrs_valid({sort_term_valid, sort_mem_valid, sort_alu_valid}),
-        .logical_instrs_ready({sort_term_ready, sort_mem_ready, sort_alu_ready})
+        .cmplt_free_regs(cmplt_free_regs),
+        .cmplt_dest_regs(cmplt_dest_regs),
+        .ROB_entries(ROB_entries),
+
+        .logical_instrs(microops),
+        .logical_instrs_valid(),
+        .logical_instrs_ready(),
+
+        .decoded_instrs(),
+        .decoded_arch_regs(),
+        .decoded_old_aliases(decoded_old_aliases),
+        .decoded_instrs_ready(decoded_instrs_ready),
+        .decoded_instrs_valid(decoded_instrs_valid)
     );
 
+    genvar g;
+    wire [FETCH_WIDTH-1:0] op_is_term;
+    for(g = 0; g < FETCH_WIDTH; g = g + 1)
+            assign op_is_term[g] = microops[g*24 + 21 +: 3] == 3'b111;
+    
+    wire issuing_term = 
+            |(op_is_term & decoded_instr_ready & decoded_instr_valid);
+    reg running;
 
+    assign microops_ready = running | wakeup;
+
+    task reset(); begin
+        running <= 1;
+    end endtask
     always @(posedge clk) if(rst) reset(); else begin
-        // Uop fetch/distribute
-        instrs_waiting <= microops_ready ? 4'b1111 : next_instrs_waiting;
-        terminated <= (terminated | sort_has_terminate) & ~wakeup;
-    end
-
-
-
+        if(issuing_term & running) running <= 0;
+        if(wakeup & ~running) running <= 1;
+    end 
 endmodule
