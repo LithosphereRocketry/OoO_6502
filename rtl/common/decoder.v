@@ -7,6 +7,7 @@
 module decoder_cell(
         input [23:0] logical_instr,
         input logical_instr_valid,
+        input rename_valid,
         output logical_instr_ready,  
 
         input [`PHYS_REGS-3:0] free_pool,
@@ -42,14 +43,15 @@ module decoder_cell(
 
     renamer _rename(
         .microop(logical_instr),
-        .prev_rename_valid(logical_instr_valid),
+        .microop_valid(logical_instr_valid),
+        .prev_rename_valid(rename_valid),
         .free_pool(free_pool),
         .rat_aliases(rat_aliases),
         .rat_mask(rat_done),
         .new_free_pool(free_pool_after),
         .new_rat_aliases(new_rat_aliases),
         .new_rat_mask(new_rat_done),
-        .dst_arch_regs(arch_regs),
+        .dst_arch_regs(arch_regs),    
         .dst_regs(dest_regs),
         .old_regs(old_rat_aliases),
         .rename_valid(decoded_instr_valid)
@@ -72,7 +74,7 @@ module decoder #(
         input [19:0] ROB_entries, // available ROB entries
 
         input [WIDTH*24-1:0] logical_instrs,
-        input [WIDTH-1:0] logical_instrs_valid,
+        input logical_instrs_valid,
         output logical_instrs_ready,
 
         output [`RENAMED_OP_SZ*WIDTH-1:0] decoded_instrs,
@@ -86,6 +88,8 @@ module decoder #(
     genvar i;
     for(i = 0; i < WIDTH; i = i + 1)
             assign opcode[4*i +: 4] = logical_instrs[24*i + 20 +: 4];
+
+    reg [3:0] to_be_decoded;
 
     reg [`PHYS_REGS-1:0] free_pool;
 
@@ -109,6 +113,7 @@ module decoder #(
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
         .logical_instr_valid(logical_instrs_valid),
+        .rename_valid({1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
         .logical_instr_ready(logical_instrs_ready),  
 
         .free_pool(interim_free_pool[`PHYS_REGS*(WIDTH+1)-1:`PHYS_REGS]),
@@ -153,33 +158,21 @@ module decoder #(
         end
     end
 
+    assign decoded_instr_valid = decoded_instrs_valid_tmp & to_be_decoded;
+    genvar x;
+    for(x = 0; x < WIDTH; x = x + 1)
+        if(~decoded_instrs_valid_tmp > (1<<x))
+            assign decoded_instrs_valid_tmp[x] = 0;
+
     integer last_valid;
     integer reached_invalid;
     integer k;
     always @(posedge clk) if(rst) reset(); else begin
-        if(logical_instrs_valid > 0 & logical_instrs_ready) instructions = logical_instrs;
-        
+        to_be_decoded = {4{logical_instrs_valid}};
+        if(logical_instrs_valid & logical_instrs_ready) instructions = logical_instrs;
 
-        reached_invalid = 0;
-        last_valid = 4;
-        for(k = 0; k < 4; k = k + 1) if(decoded_instrs_valid[3-k] & decoded_instrs_ready[3-k] & reached_invalid == 0) begin
-            last_valid = last_valid - 1;
-        end else reached_invalid = 1;
-
-        assignments_in <= interim_assignments[10*`PR_ADDR_W*(last_valid)-1 +: 10*`PR_ADDR_W];
-        free_pool <= interim_free_pool[`PHYS_REGS*(last_valid)-1 +: `PHYS_REGS];
-        
-        instructions <= instructions << (last_valid * 24);
-        ROB_entries <= ROB_entries << (last_valid * 5);
-        logical_instrs_valid <= logical_instrs_valid << last_valid;
-
-        if(last_valid > 0) begin
-            for(k = 0; k < last_valid; k = k + 1) decoded_instrs_valid_tmp[k] <= 0;
-            logical_instrs_ready <= 0;
-        end else begin
-            logical_instrs_ready <= 1;
-        end
-        decoded_instrs_valid <= decoded_instrs_valid_tmp;
+        if(to_be_decoded > 0) logical_instrs_ready <= 0;
+        else logical_instrs_ready <= 1;
     end
 
 endmodule
