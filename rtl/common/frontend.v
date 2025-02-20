@@ -13,7 +13,8 @@ module frontend #(
         input [23:0] cmplt_dest_regs,
         input [19:0] ROB_entries,
 
-        output [10*FETCH_WIDTH-1:0] decoded_old_aliases
+        output [2*`PR_ADDR_W*FETCH_WIDTH-1:0] decoded_old_aliases,
+        output old_aliases_valid
     );
 
     wire microops_ready;
@@ -51,6 +52,7 @@ module frontend #(
         .decoded_instrs(decoded_instrs),
         .decoded_arch_regs(decoded_arch_regs),
         .decoded_old_aliases(decoded_old_aliases),
+        .old_aliases_valid(old_aliases_valid),
         .decoded_instrs_ready(decoded_instrs_ready),
         .decoded_instrs_valid(decoded_instrs_valid)
     );
