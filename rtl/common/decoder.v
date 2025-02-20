@@ -79,6 +79,7 @@ module decoder #(
         output [`RENAMED_OP_SZ*WIDTH-1:0] decoded_instrs,
         output [8*WIDTH-1:0] decoded_arch_regs,
         output [10*WIDTH-1:0] decoded_old_aliases,
+        output old_aliases_valid,
         input [WIDTH-1:0] decoded_instrs_ready,
         output [WIDTH-1:0] decoded_instrs_valid
     );
@@ -170,6 +171,7 @@ module decoder #(
             to_be_decoded & ~(decoded_instrs_ready & decoded_instrs_valid);
 
     assign logical_instrs_ready = to_be_decoded_next == 0;
+    assign old_aliases_valid = logical_instrs_ready & logical_instrs_valid;
     // genvar x;
     // for(x = 0; x < WIDTH; x = x + 1)
     //     if(~decoded_instrs_valid_tmp > (1<<x))
