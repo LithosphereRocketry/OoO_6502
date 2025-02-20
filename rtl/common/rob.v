@@ -5,15 +5,15 @@ LSB end pushed first
 
 module rob #(
         parameter DATA_WIDTH = 11,
-        parameter PUSH_WIDTH = 3,
+        parameter PUSH_WIDTH = 4,
         parameter ELEMENTS = 15
     ) (
         input clk,
         input rst,
 
         input [(DATA_WIDTH-1)*PUSH_WIDTH-1:0] din,
-        input [$clog2(PUSH_WIDTH):0] din_valid_ct,
-        output [$clog2(PUSH_WIDTH):0] din_ready_ct,
+        input [PUSH_WIDTH-1:0] din_valid,
+        output [PUSH_WIDTH-1:0] din_ready_ct,
 
         output [(DATA_WIDTH-1)*PUSH_WIDTH-1:0] dout,
         output [$clog2(PUSH_WIDTH):0] dout_valid_ct,
@@ -21,8 +21,8 @@ module rob #(
 
         output [($clog2(ELEMENTS+1)+1)*4-1:0] entry_nums,
 
-        input [($clog2(ELEMENTS+1)+1)*PUSH_WIDTH-1:0] completed,
-        input [$clog2(PUSH_WIDTH):0] cmplt_valid_ct
+        input [($clog2(ELEMENTS+1)+1)*3-1:0] completed,
+        input [2:0] cmplt_valid
     );
 
     // slightly easier to have one slot always free - wastes one word of
@@ -48,9 +48,6 @@ module rob #(
     
     assign din_ready_ct = (available >= PUSH_WIDTH) ? PUSH_WIDTH : available;
 
-    wire [$clog2(PUSH_WIDTH):0] num_pushes =
-            din_valid_ct > din_ready_ct ? din_ready_ct : din_valid_ct;
-
     integer i;
     always @(*) begin
         for(i = 0; i < 4; i = i + 1) begin
@@ -70,13 +67,13 @@ module rob #(
         // (it's still gonna be ugly)
         // (this whole thing is Bad Verilog, the priority is making it work)
         write_ptr_temp = write_ptr;
-        for(i = 0; i < PUSH_WIDTH; i++) if(i < num_pushes) begin
+        for(i = 0; i < PUSH_WIDTH; i++) if((i < din_ready_ct) & din_valid[i]) begin
             buffer[write_ptr_temp] <= {din[(i+1)*(DATA_WIDTH-1)-1 +: DATA_WIDTH-1], 1'b0};
             write_ptr_temp = (write_ptr_temp == SLOTS-1) ? 0 : write_ptr_temp + 1;
         end
         write_ptr <= write_ptr_temp;
 
-        for(i = 0; i < PUSH_WIDTH; i++) if(i < cmplt_valid_ct) begin
+        for(i = 0; i < PUSH_WIDTH; i++) if(cmplt_valid[i]) begin
             buffer[completed[(i+1)*ADDR_WIDTH-1 +: ADDR_WIDTH]][0] = 1;
         end
 
