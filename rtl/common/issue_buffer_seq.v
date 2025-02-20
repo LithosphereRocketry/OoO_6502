@@ -12,7 +12,7 @@ module issue_buff_seq #(
         output dout_valid,
         input dout_ready,
 
-        input [9:0] done_flags
+        input [29:0] done_flags
     );
 
     wire [ELEMENTS:0] valids;

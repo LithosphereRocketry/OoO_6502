@@ -4,7 +4,7 @@ module issue_entry #(
     (
         input clk,
         input rst,
-        input [9:0] done_flags,
+        input [29:0] done_flags,
         input [INST_WIDTH - 1: 0] instr,
         input input_valid,
         input output_ready,
@@ -31,7 +31,7 @@ module issue_entry #(
     integer i;
     always @(*) begin
         for (i = 0; i < 4; i = i + 1) begin
-            if(done_flags & (1 << data[17+5*i:13+5*i])) flagged_data_tmp <= data | (1 << (9+i));
+            if(done_flags[data[17+5*i:13+5*i]-2]) flagged_data_tmp <= data | (1 << (9+i));
         end
         flagged_data <= flagged_data_tmp;
     end

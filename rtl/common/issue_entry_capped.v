@@ -4,7 +4,7 @@ module issue_entry_capped #(
     (
         input clk,
         input rst,
-        input [9:0] done_flags,
+        input [29:0] done_flags,
         input [INST_WIDTH - 1: 0] instr,
         input input_valid,
         input output_ready,
