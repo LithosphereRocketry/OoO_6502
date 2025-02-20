@@ -55,8 +55,7 @@ module issue_buff_ooo #(
     end
 
     task reset; begin
-        read_ptr <= 0;
-        write_ptr <= 0;
+        available_mask <= {ELEMENTS{1'b1}};
     end endtask
 
     initial reset();
