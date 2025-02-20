@@ -112,7 +112,7 @@ module decoder #(
 
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
-        .logical_instr_valid(logical_instrs_valid),
+        .logical_instr_valid(to_be_decoded),
         .rename_valid({1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
         .logical_instr_ready(logical_instrs_ready),  
 
