@@ -40,7 +40,7 @@ module tb_memory_pipeline();
         .store_out(store_out),
         .output_valid(output_valid),
         .output_ready(output_ready)
-    )
+    );
 
     task step; begin
         clk = 0;
@@ -80,7 +80,7 @@ integer i;
         assert_8(input_ready, 1'b1); // 1
         assert_8(mem_addr, 16'h0006); // base_val + offset
         assert_8(dest_reg_out, 5'b00010); // same as dest_reg
-        assert_8(data_out, 8'h0a) // same as data
+        assert_8(data_out, 8'h0a); // same as data
         assert_8(dest_arch_regs_out, 8'b11001100); // same as dest_arch_regs
         assert_8(store_out, 1'b0); // opcode[0]
         assert_8(output_valid, 1'b1); // 1
@@ -100,7 +100,7 @@ integer i;
         assert_8(input_ready, 1'b1); // 1
         assert_8(mem_addr, 16'h000c); // base_val + offset
         assert_8(dest_reg_out, 5'b00100); // same as dest_reg
-        assert_8(data_out, 8'h0c) // same as data
+        assert_8(data_out, 8'h0c); // same as data
         assert_8(dest_arch_regs_out, 8'b00110011); // same as dest_arch_regs
         assert_8(store_out, 1'b1); // opcode[0]
         assert_8(output_valid, 1'b1); // 1

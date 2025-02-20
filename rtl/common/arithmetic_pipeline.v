@@ -11,12 +11,12 @@ module arithmetic_pipeline(
 
         input instr_valid,
 
-        output [4:0] ROB_entry_out,
-        output [4:0] dest_reg_out,
-        output [4:0] flag_reg_out,
-        output [7:0] result_val,
-        output [7:0] result_flags,
-        output [7:0] arch_dest_regs_out
+        output reg [4:0] ROB_entry_out,
+        output reg [4:0] dest_reg_out,
+        output reg [4:0] flag_reg_out,
+        output reg [7:0] result_val,
+        output reg [7:0] result_flags,
+        output reg [7:0] arch_dest_regs_out
     );
 
     wire [7:0] alu_result;

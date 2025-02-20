@@ -62,7 +62,7 @@ module frontend #(
             |(op_is_term & decoded_instr_ready & decoded_instr_valid);
     reg running;
 
-    task reset(); begin
+    task reset; begin
         running <= 1;
     end endtask
     always @(posedge clk) if(rst) reset(); else begin

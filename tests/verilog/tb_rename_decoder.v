@@ -1,4 +1,4 @@
-`timescale 1ns/1ps;
+`timescale 1ns/1ps
 
 module tb_rename_decoder();
     reg [23:0] microop;

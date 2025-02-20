@@ -10,12 +10,12 @@ module memory_pipeline(
     input input_valid,
     output input_ready,
 
-    output [15:0] mem_addr,
-    output [4:0] dest_reg_out,
-    output [7:0] data_out,
-    output [7:0] dest_arch_regs_out,
-    output store_out,
-    output output_valid,
+    output reg [15:0] mem_addr,
+    output reg [4:0] dest_reg_out,
+    output reg [7:0] data_out,
+    output reg [7:0] dest_arch_regs_out,
+    output reg store_out,
+    output reg output_valid,
     input output_ready
 );
 
