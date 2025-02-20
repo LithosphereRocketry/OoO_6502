@@ -43,22 +43,28 @@ module issue_buff_ooo #(
     
     assign full = (available_mask == 0);
 
+    integer input_index;
     integer i;
     reg [$clog2(PUSH_WIDTH):0] din_ready_ct_tmp;
 
     always @(*) begin
-        din_ready_ct_tmp <= 0;
+        din_ready_ct_tmp = 0;
         for(i = 0; i < ELEMENTS; i = i+1) begin
-            if(available_mask[i] == 1 & din_ready_ct_tmp < PUSH_WIDTH) din_ready_ct_tmp <= din_ready_ct_tmp + 1;
+            if(available_mask[i] == 1 & din_ready_ct_tmp < PUSH_WIDTH) din_ready_ct_tmp = din_ready_ct_tmp + 1;
         end
-        din_ready_ct <= din_ready_ct_tmp;
+        din_ready_ct = din_ready_ct_tmp;
+        input_index = 0;
+        write_enable_mask = 0;
+        for(i = 0; i < ELEMENTS; i = i + 1) begin
+            if(input_index < din_valid_ct) begin
+                if(available_mask[i] == 1) begin
+                    instr_inputs[DATA_WIDTH*i +:DATA_WIDTH] = din[DATA_WIDTH*input_index +:DATA_WIDTH];
+                    write_enable_mask[i] = 1;
+                    input_index = input_index + 1;
+                end
+            end
+        end
     end
-
-    task reset; begin
-        available_mask <= {ELEMENTS{1'b1}};
-    end endtask
-
-    initial reset();
 
     wire [$clog2(ELEMENTS):0] output_ind;
 
@@ -70,20 +76,5 @@ module issue_buff_ooo #(
 
     assign dout = instr_outputs[DATA_WIDTH*output_ind +:DATA_WIDTH];
     assign output_enable_mask = (dout_ready? (1 << output_ind) : 0);
-
-    integer input_index;
-    always @(posedge clk) if(rst) reset(); else begin
-        input_index = 0;
-        write_enable_mask = 0;
-        for(i = 0; i < ELEMENTS; i = i + 1) begin
-            if(input_index < din_valid_ct) begin
-                if(available_mask[i] == 1) begin
-                    instr_inputs[DATA_WIDTH*i +:DATA_WIDTH] <= din[DATA_WIDTH*input_index +:DATA_WIDTH];
-                    write_enable_mask[i] <= 1;
-                    input_index = input_index + 1;
-                end
-            end
-        end
-    end
 
 endmodule

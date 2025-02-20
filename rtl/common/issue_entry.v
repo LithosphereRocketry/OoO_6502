@@ -20,7 +20,7 @@ module issue_entry #(
     reg [INST_WIDTH-1:0] flagged_data_tmp;
 
     task reset; begin
-        empty <= 0;
+        empty <= 1;
         data <= {INST_WIDTH{1'bx}};
     end endtask
 
