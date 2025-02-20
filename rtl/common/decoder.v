@@ -167,7 +167,7 @@ module decoder #(
         end
     end
 
-    assign decoded_instrs_valid = decoded_instrs_valid_tmp & to_be_decoded;
+    assign decoded_instrs_valid = {WIDTH{&decoded_instrs_valid_tmp}} & to_be_decoded;
 
     wire [WIDTH-1:0] to_be_decoded_next =
             to_be_decoded & ~(decoded_instrs_ready & decoded_instrs_valid);
