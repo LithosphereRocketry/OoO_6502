@@ -14,7 +14,6 @@ module tb_renamer();
     endtask
 
     reg [23:0] microop;
-    reg microop_valid;
     reg prev_rename_valid;
     reg [`PHYS_REGS-3:0] free_pool;
     reg [`PR_ADDR_W*10 - 1:0] rat_aliases;
@@ -31,7 +30,6 @@ module tb_renamer();
 
     renamer dut(
         .microop(microop),
-        .microop_valid(microop_valid),
         .prev_rename_valid(prev_rename_valid),
         .free_pool(free_pool),
         .rat_aliases(rat_aliases),
@@ -50,7 +48,6 @@ module tb_renamer();
         $dumpvars;
 
         prev_rename_valid = 1;
-        microop_valid = 1;
         
         // basic renaming: add into r3 and r4
         microop = 24'h034123;
@@ -77,46 +74,11 @@ module tb_renamer();
         prev_rename_valid = 0;
         #1;
         assert(rename_valid, 0);
-        assert(new_free_pool, free_pool);
-        assert(new_rat_aliases, rat_aliases);
-        assert(new_rat_done, rat_done);
 
         // test fail on out-of-registers
         prev_rename_valid = 1;
         free_pool = 30'b00000000_00000000_00000000_000100;
         #1;
         assert(rename_valid, 0);
-        assert(new_free_pool, free_pool);
-        assert(new_rat_aliases, rat_aliases);
-        assert(new_rat_done, rat_done);
-
-        // test instruction not valid
-        // if the instr isn't valid, don't attempt to allocate registers, and
-        // allow renaming to continue
-        microop_valid = 0;
-        #1;
-        assert(rename_valid, 1);
-        assert(new_free_pool, free_pool);
-        assert(new_rat_aliases, rat_aliases);
-        assert(new_rat_done, rat_done);
-
-        // even if registers are available, don't use them
-        free_pool = 30'b00000000_00000000_00011010_001100;
-        #1;
-        assert(rename_valid, 1);
-        assert(new_free_pool, free_pool);
-        assert(new_rat_aliases, rat_aliases);
-        assert(new_rat_done, rat_done);
-
-        // still pass through rename fail
-        prev_rename_valid = 0;
-        #1;
-        assert(rename_valid, 0);
-        assert(new_free_pool, free_pool);
-        assert(new_rat_aliases, rat_aliases);
-        assert(new_rat_done, rat_done);
-
-
-
     end
 endmodule

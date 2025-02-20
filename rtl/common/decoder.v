@@ -6,7 +6,6 @@
 
 module decoder_cell(
         input [23:0] logical_instr,
-        input logical_instr_valid,
         input rename_valid,
         output logical_instr_ready,  
 
@@ -44,7 +43,6 @@ module decoder_cell(
 
     renamer _rename(
         .microop(logical_instr),
-        .microop_valid(logical_instr_valid),
         .prev_rename_valid(rename_valid),
         .free_pool(free_pool),
         .rat_aliases(rat_aliases),
@@ -119,7 +117,6 @@ module decoder #(
 
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
-        .logical_instr_valid(to_be_decoded),
         .rename_valid({1'b1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
         .logical_instr_ready(decoders_logical_instrs_ready),  
 

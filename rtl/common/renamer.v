@@ -44,7 +44,6 @@ endmodule
 
 module renamer(
         input [23:0] microop,
-        input microop_valid,
         input prev_rename_valid,
 
         input [`PHYS_REGS-3:0] free_pool,
@@ -76,19 +75,15 @@ module renamer(
         .rat_aliases({rat_aliases, rat_aliases_carry}),
         .rat_done({rat_done, rat_done_carry}),
 
-        .new_free_pool({free_pool_carry, free_pool_if_success}),
-        .new_rat_aliases({rat_aliases_carry, rat_aliases_if_success}),
-        .new_rat_done({rat_done_carry, rat_done_if_success}),
+        .new_free_pool({free_pool_carry, new_free_pool}),
+        .new_rat_aliases({rat_aliases_carry, new_rat_aliases}),
+        .new_rat_done({rat_done_carry, new_rat_done}),
 
         .phys_reg(dst_regs),
         .old_reg(old_regs),
         .phys_reg_valid(cells_valid)
     );
-    assign rename_valid = prev_rename_valid & (&cells_valid | ~microop_valid);
-    wire apply_rename = microop_valid & rename_valid;
-    assign new_free_pool = apply_rename ? free_pool_if_success : free_pool;
-    assign new_rat_aliases = apply_rename ? rat_aliases_if_success : rat_aliases;
-    assign new_rat_done = apply_rename ? rat_done_if_success : rat_done;
+    assign rename_valid = prev_rename_valid & (&cells_valid);
 
     wire [3:0] opcode = microop[23:20];
     // blah blah always @* bad

@@ -71,8 +71,8 @@ module frontend #(
         .instr_used(decoded_instrs_ready),
 
         .instr_alu_ready(1'b1),
-        .instr_mem_ready(1'b0),
-        .instr_term_ready(1'b0)
+        .instr_mem_ready(1'b1),
+        .instr_term_ready(1'b1)
     );
 
     task reset; begin
