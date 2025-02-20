@@ -1,5 +1,5 @@
 module frontend #(
-    localparam FETCH_WIDTH = 4
+    parameter FETCH_WIDTH = 4
 ) (
         input clk,
         input rst,
@@ -18,17 +18,21 @@ module frontend #(
 
     wire microops_ready;
     wire [FETCH_WIDTH*24-1:0] microops;
+    wire do_microops;
     
     uop_fetch #(FETCH_WIDTH) fetch (
         .clk(clk),
         .rst(rst),
         .fetch(wakeup & instr_valid),
         .macroop_in(instr),
-        .microops_ready(microops_ready),
+        .microops_ready(microops_ready & do_microops),
         .microops(microops)
     );
 
+    wire [`RENAMED_OP_SZ*FETCH_WIDTH-1:0] decoded_instrs;
+    wire [8*FETCH_WIDTH-1:0] decoded_arch_regs;
     wire [FETCH_WIDTH-1:0] decoded_instrs_ready, decoded_instrs_valid;
+    wire decoder_ready;
 
     decoder #(FETCH_WIDTH) _decoder(
         .clk(clk),
@@ -39,11 +43,11 @@ module frontend #(
         .ROB_entries(ROB_entries),
 
         .logical_instrs(microops),
-        .logical_instrs_valid(),
-        .logical_instrs_ready(),
+        .logical_instrs_valid(do_microops),
+        .logical_instrs_ready(microops_ready),
 
-        .decoded_instrs(),
-        .decoded_arch_regs(),
+        .decoded_instrs(decoded_instrs),
+        .decoded_arch_regs(decoded_arch_regs),
         .decoded_old_aliases(decoded_old_aliases),
         .decoded_instrs_ready(decoded_instrs_ready),
         .decoded_instrs_valid(decoded_instrs_valid)
@@ -57,8 +61,6 @@ module frontend #(
     wire issuing_term = 
             |(op_is_term & decoded_instr_ready & decoded_instr_valid);
     reg running;
-
-    assign microops_ready = running | wakeup;
 
     task reset(); begin
         running <= 1;
