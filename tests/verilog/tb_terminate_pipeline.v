@@ -48,27 +48,24 @@ integer i;
         
         // unconditionally terminate
         opcode = 4'b1111; // do care
-        reg_base_val; // do care
-        flag_index = 4'h0; // don't care
+        reg_base_val = 16'h08; // do care
         flag_vals = 8'h0; // don't care
-        offset; // do care
-        immediate = ; // do care
+        offset 8'h0; // don't care
+        immediate = 4'b0001; // do care
 
         // terminate if bit of flags is true
         opcode = 4'b1110;
-        reg_base_val;
-        flag_index;
-        flag_vals;
-        offset;
-        immediate = 4'b0xxx;
+        reg_base_val = 16'h08;
+        flag_vals = 8'b00000001;
+        offset = 8'h1;
+        immediate = 4'b0001; // bit 1 of flag_vals
 
         // terminate if bit of flags is false
         opcode = 4'b1110;
-        reg_base_val;
-        flag_index;
-        flag_vals;
-        offset;
-        immediate = 4'b1xxx;
+        reg_base_val = 16'h09;
+        flag_vals = 8'b11110111;
+        offset = 8'h2;
+        immediate = 4'b1100; // bit 4 of flag_vals
 
         $finish;
     end
