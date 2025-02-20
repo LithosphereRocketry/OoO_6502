@@ -170,16 +170,12 @@ module decoder #(
     // for(x = 0; x < WIDTH; x = x + 1)
     //     if(~decoded_instrs_valid_tmp > (1<<x))
     //         assign decoded_instrs_valid_tmp[x] = 0;
-
-    integer last_valid;
-    integer reached_invalid;
-    integer k;
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid & logical_instrs_ready) begin
             instructions <= logical_instrs;
             to_be_decoded <= {4{logical_instrs_valid}};
             free_pool <= produced_free_pool;
-        end
+        end else to_be_decoded <= to_be_decoded & ~decoded_instrs_valid;
         if(decoders_logical_instrs_ready != 4'b1111) logical_instrs_ready <= 0;
         else logical_instrs_ready <= 1;
     end
