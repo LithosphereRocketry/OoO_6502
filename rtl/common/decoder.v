@@ -152,14 +152,17 @@ module decoder #(
     // assign interim_free_pool[`PHYS_REGS*WIDTH-1 +: `PHYS_REGS] = free_pool;
     // assign interim_done_flags[10*WIDTH-1 +: 10] = done_flags;
 
-    assign assignments_in = produced_assignments;
+    assign assignments_in = (logical_instrs_valid & logical_instrs_ready) ? produced_assignments : assignments;
+
+    reg [9:0] free_pool_tmp;
 
     // set done flags for completed instructions
     integer j;
     always @(*) begin
-        done_flags_in = produced_done_flags;
+        done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags;
+        free_pool_tmp = (logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool;
         for(j = 0; j < 6; j = j + 1) begin
-            if (cmplt_free_regs[5*(j+1)-1 +: 5] > 1) free_pool[cmplt_free_regs[5*(j+1)-1 +: 5]-2] = 1;
+            if (cmplt_free_regs[5*(j+1)-1 +: 5] > 1) free_pool_tmp[cmplt_free_regs[5*(j+1)-1 +: 5]-2] = 1;
             done_flags_in[cmplt_dest_regs[4*(j+1)-1 +: 4]] = 1;
         end
     end
@@ -178,7 +181,7 @@ module decoder #(
         if(logical_instrs_valid & logical_instrs_ready) begin
             instructions <= logical_instrs;
             to_be_decoded <= {WIDTH{1'b1}};
-            free_pool <= produced_free_pool;
+            free_pool <= free_pool_tmp;
         end else to_be_decoded <= to_be_decoded_next;
     end
 
