@@ -29,7 +29,7 @@ module decoder_cell(
     wire [19:0] src_regs;
     wire [3:0] src_ready;
     wire [3:0] immediate;
-    wire [9:0] dest_regs, old_rat_aliases_tmp;
+    wire [9:0] dest_regs;
     reg [`PHYS_REGS-3:0] free_pool_tmp;
     reg [10*`PR_ADDR_W-1:0] rat_aliases_tmp;
 
@@ -38,6 +38,7 @@ module decoder_cell(
         .rat_done(rat_done),
         .rat_aliases(rat_aliases),
         .src_regs(src_regs),
+        .src_ready(src_ready),
         .immediate(immediate)
     );
 
@@ -75,7 +76,7 @@ module decoder #(
 
         input [WIDTH*24-1:0] logical_instrs,
         input logical_instrs_valid,
-        output logical_instrs_ready,
+        output reg logical_instrs_ready,
 
         output [`RENAMED_OP_SZ*WIDTH-1:0] decoded_instrs,
         output [8*WIDTH-1:0] decoded_arch_regs,
@@ -105,27 +106,31 @@ module decoder #(
         .done_flags(done_flags)
     );
 
-    wire [10*`PR_ADDR_W*(WIDTH+1)-1:0] interim_assignments;
-    wire [(`PHYS_REGS-2)*(WIDTH+1)-1:0] interim_free_pool;
-    wire [10*(WIDTH+1)-1:0] interim_done_flags;
+    wire [10*`PR_ADDR_W*(WIDTH-1)-1:0] interim_assignments;
+    wire [(`PHYS_REGS-2)*(WIDTH-1)-1:0] interim_free_pool;
+    wire [10*(WIDTH-1)-1:0] interim_done_flags;
     reg [WIDTH*24-1:0] instructions;
-    reg [WIDTH-1:0] decoded_instrs_valid_tmp;
+    wire [WIDTH-1:0] decoded_instrs_valid_tmp;
     wire [WIDTH - 1: 0] decoders_logical_instrs_ready;
+
+    wire [10*`PR_ADDR_W-1:0] produced_assignments;
+    wire [`PHYS_REGS-3:0] produced_free_pool;
+    wire [9:0] produced_done_flags;
 
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
         .logical_instr_valid(to_be_decoded),
-        .rename_valid({1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
+        .rename_valid({1'b1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
         .logical_instr_ready(decoders_logical_instrs_ready),  
 
-        .free_pool(interim_free_pool[(`PHYS_REGS-2)*(WIDTH+1)-1:(`PHYS_REGS-2)]),
-        .rat_aliases(interim_assignments[10*`PR_ADDR_W*(WIDTH+1)-1:10*`PR_ADDR_W*WIDTH]),
-        .rat_done(interim_done_flags[10*(WIDTH+1)-1:10]),
+        .free_pool({free_pool, interim_free_pool}),
+        .rat_aliases({assignments, interim_assignments}),
+        .rat_done({done_flags, interim_done_flags}),
         .ROB_entry(ROB_entries),
 
-        .free_pool_after(interim_free_pool[(`PHYS_REGS-2)*WIDTH-1:0]),
-        .new_rat_aliases(interim_assignments[10*`PR_ADDR_W*WIDTH-1:0]),
-        .new_rat_done(interim_done_flags[10*WIDTH-1:0]),
+        .free_pool_after({interim_free_pool, produced_free_pool}),
+        .new_rat_aliases({interim_assignments, produced_assignments}),
+        .new_rat_done({interim_done_flags, produced_done_flags}),
         .old_rat_aliases(decoded_old_aliases),
         .arch_regs(decoded_arch_regs),
 
@@ -136,31 +141,31 @@ module decoder #(
 
     task reset; begin
         free_pool <= {`PHYS_REGS{1'b1}};
-        // logical_instrs_ready = 1;
-        instructions = 0;
+        logical_instrs_ready <= 1;
+        instructions <= 0;
+        to_be_decoded <= 0;
     end endtask
 
     initial reset();
 
-    // TODO ASSIGN THINGS
-    assign interim_assignments[10*`PR_ADDR_W*(WIDTH+1)-1 +: 10*`PR_ADDR_W] = assignments;
-    assign interim_free_pool[`PHYS_REGS*(WIDTH+1)-1 +: `PHYS_REGS] = free_pool;
-    assign interim_done_flags[10*(WIDTH+1)-1 +: 10] = done_flags;
+    // // TODO ASSIGN THINGS
+    // assign interim_assignments[10*`PR_ADDR_W*WIDTH-1 +: 10*`PR_ADDR_W] = assignments;
+    // assign interim_free_pool[`PHYS_REGS*WIDTH-1 +: `PHYS_REGS] = free_pool;
+    // assign interim_done_flags[10*WIDTH-1 +: 10] = done_flags;
 
-    //assign assignments_in = interim_assignments[10*`PR_ADDR_W-1:0];
-    //assign done_flags_in = done_flags;
+    assign assignments_in = produced_assignments;
 
     // set done flags for completed instructions
     integer j;
     always @(*) begin
-        done_flags_in = interim_done_flags[9:0];
+        done_flags_in = produced_done_flags;
         for(j = 0; j < 6; j = j + 1) begin
             if (cmplt_free_regs[5*(j+1)-1 +: 5] > 1) free_pool[cmplt_free_regs[5*(j+1)-1 +: 5]-2] = 1;
             done_flags_in[cmplt_dest_regs[4*(j+1)-1 +: 4]] = 1;
         end
     end
 
-    assign decoded_instr_valid = decoded_instrs_valid_tmp & to_be_decoded;
+    assign decoded_instrs_valid = decoded_instrs_valid_tmp & to_be_decoded;
     // genvar x;
     // for(x = 0; x < WIDTH; x = x + 1)
     //     if(~decoded_instrs_valid_tmp > (1<<x))
@@ -171,10 +176,10 @@ module decoder #(
     integer k;
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid & logical_instrs_ready) begin
-            instructions = logical_instrs;
-            to_be_decoded = {4{logical_instrs_valid}};
+            instructions <= logical_instrs;
+            to_be_decoded <= {4{logical_instrs_valid}};
+            free_pool <= produced_free_pool;
         end
-
         if(decoders_logical_instrs_ready != 4'b1111) logical_instrs_ready <= 0;
         else logical_instrs_ready <= 1;
     end

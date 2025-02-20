@@ -12,14 +12,18 @@ module cpu_ooo(
     );
 
     wire instr_valid = 0;
+    wire instr_ready;
 
     frontend _frontend(
         .clk(clk),
         .rst(rst),
         .wakeup(1'b0),
         .instr(din_i),
-        .instr_valid(instr_valid)
-
+        .instr_valid(instr_valid),
+        .instr_ready(instr_ready),
+        .cmplt_free_regs({30{1'b0}}),
+        .cmplt_dest_regs({24{1'b0}}),
+        .ROB_entries({20{1'b0}})
     );
 
 endmodule

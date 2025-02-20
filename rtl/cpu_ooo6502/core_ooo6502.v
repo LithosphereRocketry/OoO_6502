@@ -20,8 +20,8 @@ module core(
         .clk(clk),
         .rst(rst),
 
-        .addr_i(addr),
-        .din_i(data_in)
+        .addr_i(addr1),
+        .din_i(data_in1)
         
         // TODO: second port
     );

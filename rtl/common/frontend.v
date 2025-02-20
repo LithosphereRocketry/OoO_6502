@@ -23,11 +23,13 @@ module frontend #(
     uop_fetch #(FETCH_WIDTH) fetch (
         .clk(clk),
         .rst(rst),
-        .fetch(wakeup & instr_valid),
+        .fetch(wakeup & instr_valid & instr_ready),
         .macroop_in(instr),
         .microops_ready(microops_ready & do_microops),
         .microops(microops)
     );
+
+    assign instr_ready = microops_ready; // TODO is this right?
 
     wire [`RENAMED_OP_SZ*FETCH_WIDTH-1:0] decoded_instrs;
     wire [8*FETCH_WIDTH-1:0] decoded_arch_regs;
@@ -59,14 +61,27 @@ module frontend #(
             assign op_is_term[g] = microops[g*24 + 21 +: 3] == 3'b111;
     
     wire issuing_term = 
-            |(op_is_term & decoded_instr_ready & decoded_instr_valid);
+            |(op_is_term & decoded_instrs_ready & decoded_instrs_valid);
     reg running;
+    assign do_microops = running ? ~issuing_term : wakeup;
+
+    type_sort #(FETCH_WIDTH) sorter(
+        .instr_in(decoded_instrs),
+        .instr_valid(decoded_instrs_valid),
+        .instr_used(decoded_instrs_ready),
+
+        .instr_alu_ready(1'b1),
+        .instr_mem_ready(1'b1),
+        .instr_term_ready(1'b1)
+    );
+
+    // for now
+    assign decoded_instrs_ready = {FETCH_WIDTH{1'b1}};
 
     task reset; begin
         running <= 1;
     end endtask
     always @(posedge clk) if(rst) reset(); else begin
-        if(issuing_term & running) running <= 0;
-        if(wakeup & ~running) running <= 1;
+        running <= do_microops;
     end 
 endmodule

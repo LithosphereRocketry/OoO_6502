@@ -1,7 +1,7 @@
 // Only supports issuing one per type for now - TODO add more later
 
 module type_sort_cell (
-        input [46:0] instr_in,
+        input [`RENAMED_OP_SZ-1:0] instr_in,
         input instr_valid,
 
         input was_terminated,
@@ -32,7 +32,7 @@ module type_sort_cell (
     assign is_alu = ~was_terminated & ~had_alu & op_is_alu;
     assign has_alu = had_alu | is_alu;
 
-    wire is_nop = op_is_alu & instr_in[42:33] == 8'h00; // ALU op with no dest = nop
+    wire is_nop = op_is_alu & instr_in[42:33] == 10'h000; // ALU op with no dest = nop
 
     wire op_is_mem = instr_valid & opcode[3:1] == 3'b110;
     assign is_mem = ~was_terminated & ~had_mem & op_is_mem;
