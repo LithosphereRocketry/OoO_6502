@@ -154,7 +154,7 @@ module decoder #(
 
     assign assignments_in = (logical_instrs_valid & logical_instrs_ready) ? produced_assignments : assignments;
 
-    reg [9:0] free_pool_tmp;
+    reg [29:0] free_pool_tmp;
 
     // set done flags for completed instructions
     integer j;
