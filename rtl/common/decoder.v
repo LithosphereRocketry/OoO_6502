@@ -109,12 +109,13 @@ module decoder #(
     wire [10*(WIDTH+1)-1:0] interim_done_flags;
     reg [WIDTH*24-1:0] instructions;
     reg [WIDTH-1:0] decoded_instrs_valid_tmp;
+    wire [WIDTH - 1: 0] decoders_logical_instrs_ready;
 
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
         .logical_instr_valid(to_be_decoded),
         .rename_valid({1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
-        .logical_instr_ready(logical_instrs_ready),  
+        .logical_instr_ready(decoders_logical_instrs_ready),  
 
         .free_pool(interim_free_pool[`PHYS_REGS*(WIDTH+1)-1:`PHYS_REGS]),
         .rat_aliases(interim_assignments[10*`PR_ADDR_W*(WIDTH+1)-1:10*`PR_ADDR_W*WIDTH]),
@@ -168,10 +169,12 @@ module decoder #(
     integer reached_invalid;
     integer k;
     always @(posedge clk) if(rst) reset(); else begin
-        to_be_decoded = {4{logical_instrs_valid}};
-        if(logical_instrs_valid & logical_instrs_ready) instructions = logical_instrs;
+        if(logical_instrs_valid & logical_instrs_ready) begin
+            instructions = logical_instrs;
+            to_be_decoded = {4{logical_instrs_valid}};
+        end
 
-        if(to_be_decoded > 0) logical_instrs_ready <= 0;
+        if(decoders_logical_instrs_ready != 4'b1111) logical_instrs_ready <= 0;
         else logical_instrs_ready <= 1;
     end
 
