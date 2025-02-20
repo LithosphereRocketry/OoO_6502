@@ -58,7 +58,7 @@ module decoder_cell(
         .rename_valid(decoded_instr_valid)
     );
 
-    assign logical_instr_ready = !decoded_instr_valid | decoded_instr_ready;
+    assign logical_instr_ready = decoded_instr_valid & decoded_instr_ready;
     assign decoded_instr = {logical_instr[23:20], dest_regs, src_regs, src_ready, immediate, ROB_entry};
 
 endmodule
@@ -76,7 +76,7 @@ module decoder #(
 
         input [WIDTH*24-1:0] logical_instrs,
         input logical_instrs_valid,
-        output reg logical_instrs_ready,
+        output logical_instrs_ready,
 
         output [`RENAMED_OP_SZ*WIDTH-1:0] decoded_instrs,
         output [8*WIDTH-1:0] decoded_arch_regs,
@@ -141,7 +141,6 @@ module decoder #(
 
     task reset; begin
         free_pool <= {`PHYS_REGS{1'b1}};
-        logical_instrs_ready <= 1;
         instructions <= 0;
         to_be_decoded <= 0;
     end endtask
@@ -166,6 +165,11 @@ module decoder #(
     end
 
     assign decoded_instrs_valid = decoded_instrs_valid_tmp & to_be_decoded;
+
+    wire [WIDTH-1:0] to_be_decoded_next =
+            to_be_decoded & ~(decoded_instrs_ready & decoded_instrs_valid);
+
+    assign logical_instrs_ready = to_be_decoded_next == 0;
     // genvar x;
     // for(x = 0; x < WIDTH; x = x + 1)
     //     if(~decoded_instrs_valid_tmp > (1<<x))
@@ -173,11 +177,9 @@ module decoder #(
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid & logical_instrs_ready) begin
             instructions <= logical_instrs;
-            to_be_decoded <= {4{logical_instrs_valid}};
+            to_be_decoded <= {WIDTH{1'b1}};
             free_pool <= produced_free_pool;
-        end else to_be_decoded <= to_be_decoded & ~decoded_instrs_valid;
-        if(decoders_logical_instrs_ready != 4'b1111) logical_instrs_ready <= 0;
-        else logical_instrs_ready <= 1;
+        end else to_be_decoded <= to_be_decoded_next;
     end
 
 endmodule

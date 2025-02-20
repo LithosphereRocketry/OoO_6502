@@ -58,7 +58,7 @@ module frontend #(
     genvar g;
     wire [FETCH_WIDTH-1:0] op_is_term;
     for(g = 0; g < FETCH_WIDTH; g = g + 1)
-            assign op_is_term[g] = microops[g*24 + 21 +: 3] == 3'b111;
+            assign op_is_term[g] = decoded_instrs[g*47 + 44 +: 3] == 3'b111;
     
     wire issuing_term = 
             |(op_is_term & decoded_instrs_ready & decoded_instrs_valid);
@@ -71,12 +71,9 @@ module frontend #(
         .instr_used(decoded_instrs_ready),
 
         .instr_alu_ready(1'b1),
-        .instr_mem_ready(1'b1),
-        .instr_term_ready(1'b1)
+        .instr_mem_ready(1'b0),
+        .instr_term_ready(1'b0)
     );
-
-    // for now
-    assign decoded_instrs_ready = {FETCH_WIDTH{1'b1}};
 
     task reset; begin
         running <= 1;
