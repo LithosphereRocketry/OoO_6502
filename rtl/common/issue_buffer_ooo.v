@@ -21,12 +21,12 @@ module issue_buff_ooo #(
     );
     // look into instance array
 
-    reg [ELEMENTS-1:0] valid_mask;
-    reg [ELEMENTS-1:0] output_enable_mask;
+    wire [ELEMENTS-1:0] valid_mask;
+    wire [ELEMENTS-1:0] output_enable_mask;
     reg [ELEMENTS-1:0] write_enable_mask;
-    reg [ELEMENTS-1:0] available_mask;
+    wire [ELEMENTS-1:0] available_mask;
     reg [ELEMENTS*DATA_WIDTH-1:0] instr_inputs;
-    reg [ELEMENTS*DATA_WIDTH-1:0] instr_outputs;
+    wire [ELEMENTS*DATA_WIDTH-1:0] instr_outputs;
     wire full;
     issue_entry_capped entries [ELEMENTS-1:0] (
         .clk(clk),
@@ -74,14 +74,14 @@ module issue_buff_ooo #(
 
     integer input_index;
     always @(posedge clk) if(rst) reset(); else begin
-        input_index <= 0;
+        input_index = 0;
         write_enable_mask = 0;
         for(i = 0; i < ELEMENTS; i = i + 1) begin
             if(input_index < din_valid_ct) begin
                 if(available_mask[i] == 1) begin
                     instr_inputs[DATA_WIDTH*i +:DATA_WIDTH] <= din[DATA_WIDTH*input_index +:DATA_WIDTH];
-                    write_enable_mask[i] = 1;
-                    input_index <= input_index + 1;
+                    write_enable_mask[i] <= 1;
+                    input_index = input_index + 1;
                 end
             end
         end
