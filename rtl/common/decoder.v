@@ -160,8 +160,8 @@ module decoder #(
         done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags;
         free_pool_tmp = (logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool;
         for(j = 0; j < 6; j = j + 1) begin
-            if (cmplt_free_regs[5*(j+1)-1 +: 5] > 1) free_pool_tmp[cmplt_free_regs[5*(j+1)-1 +: 5]-2] = 1;
-            done_flags_in[cmplt_dest_regs[4*(j+1)-1 +: 4]] = 1;
+            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_tmp[cmplt_free_regs[5*j +: 5]-2] = 1;
+            done_flags_in[cmplt_dest_regs[4*j +: 4]] = 1;
         end
     end
 

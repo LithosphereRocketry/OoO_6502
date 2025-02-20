@@ -69,7 +69,7 @@ module issue_buff_ooo #(
         .out(output_ind)
     );
 
-    assign dout = instr_outputs[DATA_WIDTH*(output_ind+1)-1 +:DATA_WIDTH];
+    assign dout = instr_outputs[DATA_WIDTH*output_ind +:DATA_WIDTH];
     assign output_enable_mask = (dout_ready? (1 << output_ind) : 0);
 
     integer input_index;
@@ -79,7 +79,7 @@ module issue_buff_ooo #(
         for(i = 0; i < ELEMENTS; i = i + 1) begin
             if(input_index < din_valid_ct) begin
                 if(available_mask[i] == 1) begin
-                    instr_inputs[DATA_WIDTH*(i+1)-1 +:DATA_WIDTH] <= din[DATA_WIDTH*(input_index+1)-1 +:DATA_WIDTH];
+                    instr_inputs[DATA_WIDTH*i +:DATA_WIDTH] <= din[DATA_WIDTH*input_index +:DATA_WIDTH];
                     write_enable_mask[i] = 1;
                     input_index <= input_index + 1;
                 end

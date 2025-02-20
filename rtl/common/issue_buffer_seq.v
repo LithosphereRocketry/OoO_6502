@@ -33,7 +33,7 @@ module issue_buff_seq #(
     );
 
     assign dout = instrs[DATA_WIDTH-1:0];
-    assign instrs[ELEMENTS*DATA_WIDTH-1+:DATA_WIDTH] = din;
+    assign instrs[ELEMENTS*(DATA_WIDTH-1)+:DATA_WIDTH] = din;
     assign valids[ELEMENTS] = din_valid;
     assign din_ready = readys[ELEMENTS];
 
