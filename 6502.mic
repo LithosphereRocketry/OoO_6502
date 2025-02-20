@@ -1,6 +1,8 @@
 ; Based on http://www.6502.org/users/obelisk/6502/reference.html
 
 ; Startup code
+    ; set up flag register
+    bit flag, zero @ 5 ; Initialize flag register
     ; we use tmp2 as temporary PCH and tmp1 as temporary PCL
     sub {zero, tmp2}, {one, zero}, one ; tmp2 = 0 - 1 = 0xFF
     sub {zero, tmp1}, {zero, zero}, one ; tmp1 = 0 - 1 - 1 = 0xFE
