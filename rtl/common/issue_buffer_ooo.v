@@ -52,7 +52,6 @@ module issue_buffer_ooo #(
         for(i = 0; i < ELEMENTS; i = i+1) begin
             if(available_mask[i] == 1 & din_ready_ct_tmp < PUSH_WIDTH) din_ready_ct_tmp = din_ready_ct_tmp + 1;
         end
-        din_ready_ct = din_ready_ct_tmp;
         input_index = 0;
         write_enable_mask = 0;
         for(i = 0; i < ELEMENTS; i = i + 1) begin
@@ -73,7 +72,7 @@ module issue_buffer_ooo #(
 
     initial reset();
 
-    wire [$clog2(ELEMENTS):0] output_ind;
+    wire [$clog2(ELEMENTS)-1:0] output_ind;
 
     priority_enc #(.WIDTH(ELEMENTS)) _find_first_valid (
         .in(valid_mask),

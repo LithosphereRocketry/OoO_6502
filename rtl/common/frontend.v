@@ -130,6 +130,9 @@ module frontend #(
         .dout_ready(alu_op_ready)
     );
 
+    assign sort_mem_ready = 1;
+    assign sort_term_ready = 1;
+
     task reset; begin
         running <= 1;
     end endtask
