@@ -31,7 +31,7 @@ module issue_entry #(
     integer i;
     always @(*) begin
         for (i = 0; i < 4; i = i + 1) begin
-            if(done_flags[data[17+5*i:13+5*i]-2]) flagged_data_tmp <= data | (1 << (9+i));
+            if(done_flags[data[13 + 5*i +: 4]-2]) flagged_data_tmp <= data | (1 << (9+i));
         end
         flagged_data <= flagged_data_tmp;
     end

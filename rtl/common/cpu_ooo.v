@@ -22,7 +22,8 @@ module cpu_ooo(
         .instr_valid(instr_valid),
         .instr_ready(instr_ready),
         .cmplt_free_regs({30{1'b0}}),
-        .cmplt_dest_regs({24{1'b0}}),
+        .cmplt_dest_arch({24{1'b0}}),
+        .cmplt_dest_phys({30{1'b0}}),
         .ROB_entries({20{1'b0}})
     );
 

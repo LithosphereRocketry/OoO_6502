@@ -2,7 +2,7 @@
 Allows 4 inputs per cycle, outputs at most one ready instruction per cycle
 */
 
-module issue_buff_ooo #(
+module issue_buffer_ooo #(
         parameter DATA_WIDTH = 47,
         parameter PUSH_WIDTH = 4,
         parameter ELEMENTS = 4
@@ -17,7 +17,7 @@ module issue_buff_ooo #(
         output dout_valid,
         input dout_ready,
 
-        input [9:0] done_flags
+        input [6*`PR_ADDR_W-1:0] done_flags
     );
     // look into instance array
 
@@ -65,6 +65,13 @@ module issue_buff_ooo #(
             end
         end
     end
+    assign din_ready_ct = din_ready_ct_tmp;
+
+    task reset; begin
+
+    end endtask
+
+    initial reset();
 
     wire [$clog2(ELEMENTS):0] output_ind;
 
