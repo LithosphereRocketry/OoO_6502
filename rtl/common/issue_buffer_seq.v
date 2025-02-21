@@ -1,4 +1,4 @@
-module issue_buff_seq #(
+module issue_buffer_seq #(
         parameter DATA_WIDTH = 47,
         parameter ELEMENTS = 4
     ) (
@@ -15,34 +15,31 @@ module issue_buff_seq #(
         input [29:0] done_flags
     );
 
-    wire [ELEMENTS:0] valids;
-    wire [ELEMENTS:0] readys;
-    wire [ELEMENTS*DATA_WIDTH-1:0] instrs;
+    wire [ELEMENTS-2:0] valids;
+    wire [ELEMENTS-2:0] readys;
+    wire [(ELEMENTS-1)*DATA_WIDTH-1:0] instrs;
+    wire cap_ready, cap_valid;
+    wire [DATA_WIDTH-1:0] instr_cap;
 
-    issue_entry entries [ELEMENTS-1:0] (
+    issue_entry #(DATA_WIDTH) entries [ELEMENTS-1:0] (
         .clk(clk),
         .rst(rst),
         .done_flags(done_flags),
-        .instr(instrs[ELEMENTS*DATA_WIDTH-1:DATA_WIDTH]),
-        .input_valid(valids[ELEMENTS:1]),
-        .output_ready(readys[ELEMENTS-1:0]),
+        .instr({din, instrs}),
+        .input_valid({din_valid, valids}),
+        .output_ready({readys, cap_ready}),
 
-        .instr_out(instrs[(ELEMENTS-1)*DATA_WIDTH-1:0]),
-        .input_ready(readys[ELEMENTS:1]),
-        .output_valid(valids[ELEMENTS-1:0])
+        .instr_out({instrs, dout}),
+        .input_ready({din_ready, readys}),
+        .output_valid({valids, cap_valid})
     );
 
-    assign dout = instrs[DATA_WIDTH-1:0];
-    assign instrs[ELEMENTS*(DATA_WIDTH-1)+:DATA_WIDTH] = din;
-    assign valids[ELEMENTS] = din_valid;
-    assign din_ready = readys[ELEMENTS];
-
     issue_cap #(.INST_WIDTH(47)) _cap (
-        .entry_valid(valids[0]),
-        .instr(instrs[DATA_WIDTH-1:0]),
+        .entry_valid(cap_valid),
+        .instr(dout),
         .next_ready(dout_ready),
 
-        .entry_ready(readys[0]),
+        .entry_ready(cap_ready),
         .result_valid(dout_valid)
     );
 

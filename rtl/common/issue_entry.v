@@ -41,7 +41,7 @@ module issue_entry #(
     always @(posedge clk) if(rst) reset(); else begin
         data <= ((input_valid & input_ready) ? instr : flagged_data);
         if(empty) begin
-            empty <= !(input_valid & input_ready & output_ready);
+            empty <= !(input_valid & input_ready & !output_ready);
         end
         else begin
             empty <= output_ready & !(input_ready & input_valid);

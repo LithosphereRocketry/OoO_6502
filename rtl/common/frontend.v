@@ -101,7 +101,7 @@ module frontend #(
     );
 
     integer i;
-    reg [`PHYS_REGS-1:0] cmplt_dest_mask; // combinational
+    reg [`PHYS_REGS-3:0] cmplt_dest_mask; // combinational
     reg [`PR_ADDR_W-1:0] cmplt_dest_tmp; // combinational
     always @* begin
         cmplt_dest_mask = 0;
@@ -130,8 +130,41 @@ module frontend #(
         .dout_ready(alu_op_ready)
     );
 
-    assign sort_mem_ready = 1;
-    assign sort_term_ready = 1;
+    issue_buffer_seq #(
+        .DATA_WIDTH(`RENAMED_OP_SZ),
+        .ELEMENTS(4)
+    ) mem_buffer(
+        .clk(clk),
+        .rst(rst),
+
+        .din(sort_mem_op),
+        .din_ready(sort_mem_ready),
+        .din_valid(sort_mem_valid),
+
+        .done_flags(cmplt_dest_mask),
+
+        .dout(mem_op),
+        .dout_valid(mem_op_valid),
+        .dout_ready(mem_op_ready)
+    );
+
+    issue_buffer_seq #(
+        .DATA_WIDTH(`RENAMED_OP_SZ),
+        .ELEMENTS(4)
+    ) term_buffer(
+        .clk(clk),
+        .rst(rst),
+
+        .din(sort_term_op),
+        .din_ready(sort_term_ready),
+        .din_valid(sort_term_valid),
+
+        .done_flags(cmplt_dest_mask),
+
+        .dout(term_op),
+        .dout_valid(term_op_valid),
+        .dout_ready(term_op_ready)
+    );
 
     task reset; begin
         running <= 1;

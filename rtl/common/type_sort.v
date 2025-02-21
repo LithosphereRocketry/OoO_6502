@@ -103,8 +103,8 @@ module type_sort #(parameter FETCH_WIDTH = 4) (
         .out({ind_alu, ind_mem, ind_term})
     );
 
-    assign instr_alu = instr_in[ind_alu*47 +: 47];
-    assign instr_mem = instr_in[ind_mem*47 +: 47];
-    assign instr_term = instr_in[ind_term*47 +: 47];
+    assign instr_alu = instr_in[ind_alu*`RENAMED_OP_SZ +: `RENAMED_OP_SZ];
+    assign instr_mem = instr_in[ind_mem*`RENAMED_OP_SZ +: `RENAMED_OP_SZ];
+    assign instr_term = instr_in[ind_term*`RENAMED_OP_SZ +: `RENAMED_OP_SZ];
 
 endmodule
