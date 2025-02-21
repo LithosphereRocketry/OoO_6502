@@ -26,14 +26,14 @@ module issue_entry #(
 
     assign input_ready = empty | output_ready;
     assign output_valid = !empty | input_valid;
-    assign instr_out = empty? instr : flagged_data;
+    assign instr_out = empty ? instr : flagged_data;
 
     integer i;
     always @(*) begin
+        flagged_data = data;
         for (i = 0; i < 4; i = i + 1) begin
-            if(done_flags[data[13 + 5*i +: 4]-2]) flagged_data_tmp <= data | (1 << (9+i));
+            if(done_flags[data[13 + 5*i +: 4]-2]) flagged_data = flagged_data | (1 << (9+i));
         end
-        flagged_data <= flagged_data_tmp;
     end
 
     initial reset();
