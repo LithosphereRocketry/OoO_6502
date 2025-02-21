@@ -4,13 +4,15 @@ module middle_end(
     input clk,
     input rst,
     input [`RENAMED_OP_SZ-1:0] arith_instr,
+    input arith_valid,
     input [`RENAMED_OP_SZ-1:0] mem_instr,
+    input mem_valid,
     input [`RENAMED_OP_SZ-1:0] term_instr,
+    input term_valid,
 
-    input [2:0] valid_mask,
     input [8*3-1:0] arch_dest_regs,
-    input [5*6-1:0] cmplt_regs,
-    input [8*6-1:0] cmplt_vals,
+    // input [5*6-1:0] cmplt_regs,
+    // input [8*6-1:0] cmplt_vals,
 
     output [15:0] mem_addr,
     output mem_store,
@@ -19,10 +21,10 @@ module middle_end(
 
     output [4*5-1:0] arch_dest_regs_out,
     output [5*3-1:0] ROB_entries_out,
-    output [5*5-1:0] dest_regs_out,
-    output [8*5-1:0] data_out,
-    output [15:0] mem_addr,
-    output mem_input_ready,
+    // output [5*5-1:0] dest_regs_out,
+    // output [8*5-1:0] data_out,
+    // output [15:0] mem_addr,
+    // output mem_input_ready,
     output arith_valid,
     output mem_valid,
     output term_valid
