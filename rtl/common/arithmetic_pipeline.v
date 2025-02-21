@@ -16,11 +16,14 @@ module arithmetic_pipeline(
         output reg [4:0] flag_reg_out,
         output reg [7:0] result_val,
         output reg [7:0] result_flags,
-        output reg [7:0] arch_dest_regs_out
+        output reg [7:0] arch_dest_regs_out,
+        output output_valid
     );
 
     wire [7:0] alu_result;
     wire [7:0] alu_flags;
+
+    assign output_valid = instr_valid;
 
     alu _alu(
         .opcode(opcode),

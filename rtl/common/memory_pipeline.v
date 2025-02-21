@@ -1,6 +1,7 @@
 module memory_pipeline(
     input clk,
     input [3:0] opcode,
+    input [4:0] ROB_entry,
     input [15:0] base_val,
     input [7:0] offset,
     input [4:0] dest_reg,
@@ -14,6 +15,7 @@ module memory_pipeline(
     output reg [4:0] dest_reg_out,
     output reg [7:0] data_out,
     output reg [7:0] dest_arch_regs_out,
+    output reg [4:0] ROB_entry_out,
     output reg store_out,
     output reg output_valid,
     input output_ready
@@ -34,6 +36,7 @@ always @(posedge clk) begin
         data_out <= data;
         store_out <= opcode[0];
         dest_arch_regs_out <= dest_arch_regs;
+        ROB_entry_out <= ROB_entry;
         output_valid = 1;
     end
     else output_valid = 0;
