@@ -17,7 +17,7 @@ module middle_end(
     output mem_input_ready,
     output arith_valid,
     output mem_valid,
-    output term_valid,
+    output term_valid
 );
 
 wire [5*12-1:0] reg_read_addrs;
