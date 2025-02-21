@@ -21,7 +21,6 @@ module memory_pipeline(
     output [7:0] data_out,
     output reg [7:0] dest_arch_regs_out,
     output reg [4:0] ROB_entry_out,
-    output reg store_out,
     output reg output_valid
 );
 
