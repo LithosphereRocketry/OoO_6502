@@ -56,6 +56,10 @@ module cpu_ooo(
         .term_op_ready(term_op_ready)
     );
 
+    middle_end _middle(
+        
+    );
+
     assign alu_op_ready = 1;
     assign mem_op_ready = 1;
     assign term_op_ready = 1;

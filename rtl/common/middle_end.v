@@ -12,6 +12,11 @@ module middle_end(
     input [5*6-1:0] cmplt_regs,
     input [8*6-1:0] cmplt_vals,
 
+    output [15:0] mem_addr,
+    output mem_store,
+    output [7:0] mem_dout,
+    input [7:0] mem_din,
+
     output [4*5-1:0] arch_dest_regs_out,
     output [5*3-1:0] ROB_entries_out,
     output [5*5-1:0] dest_regs_out,
