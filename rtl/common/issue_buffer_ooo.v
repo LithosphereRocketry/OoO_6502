@@ -81,6 +81,6 @@ module issue_buffer_ooo #(
     );
 
     assign dout = instr_outputs[DATA_WIDTH*output_ind +:DATA_WIDTH];
-    assign output_enable_mask = (dout_ready? (1 << output_ind) : 0);
+    assign output_enable_mask = ((dout_ready & dout_valid) ? (1 << output_ind) : 0);
 
 endmodule
