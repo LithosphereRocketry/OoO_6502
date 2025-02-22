@@ -13,13 +13,13 @@ module rob #(
 
         input [(DATA_WIDTH-1)*PUSH_WIDTH-1:0] din,
         input [PUSH_WIDTH-1:0] din_valid,
-        output [PUSH_WIDTH-1:0] din_ready_ct,
+        output [2:0] din_ready_ct,
 
-        output [(DATA_WIDTH-1)*PUSH_WIDTH-1:0] dout,
-        output [$clog2(PUSH_WIDTH):0] dout_valid_ct,
-        input [$clog2(PUSH_WIDTH):0] dout_ready_ct,
+        output reg [(DATA_WIDTH-1)*3-1:0] dout,
+        output reg [$clog2(3):0] dout_valid_ct,
+        input [$clog2(3):0] dout_ready_ct,
 
-        output [($clog2(ELEMENTS+1)+1)*4-1:0] entry_nums,
+        output reg [($clog2(ELEMENTS+1)+1)*4-1:0] entry_nums,
 
         input [($clog2(ELEMENTS+1)+1)*3-1:0] completed,
         input [2:0] cmplt_valid
@@ -80,14 +80,17 @@ module rob #(
         // add all complete instructions (up to the push width) to the output
         valid = 1;
         read_ptr_tmp = read_ptr;
-        for(i = 0; i < PUSH_WIDTH; i++) if((i < dout_ready_ct) & (i < occupied)) begin
+        for(i = 0; i < 3; i++) if((i < dout_ready_ct) & (i < occupied)) begin
             index = read_ptr + i;
             if(index > ELEMENTS) index = index - SLOTS;
             if(valid) if(buffer[index][0]) begin
                 dout[DATA_WIDTH*i +: DATA_WIDTH-1] = buffer[index][DATA_WIDTH-1:1];
                 dout_valid_ct = dout_valid_ct + 1;
                 read_ptr_tmp = (read_ptr_tmp == SLOTS-1) ? 0 : read_ptr_tmp + 1;
-            end else valid = 0;
+            end else begin
+                valid = 0;
+                dout[DATA_WIDTH*i +: DATA_WIDTH-1] = 0;
+            end
         end
         read_ptr = read_ptr_tmp;
     end

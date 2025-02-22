@@ -26,6 +26,17 @@ module cpu_ooo(
     wire term_op_valid;
     wire term_op_ready;
 
+    wire [2*`PR_ADDR_W*4-1:0] decoded_old_aliases;
+    wire decoded_old_aliases_valid;
+    wire [2:0] rob_ready_ct;
+    wire rob_entries_available;
+    wire [5*4-1:0] next_ROB_entries;
+    wire [6*`PR_ADDR_W-1:0] committed_free_regs;
+    wire [4*5-1:0] complete_arch_regs;
+    wire [`PR_ADDR_W*5-1:0] complete_phys_regs;
+
+    assign rob_entries_available = rob_ready_ct == 4;
+
     // wire [8*3-1:0] dispatch_
 
     frontend _frontend(
@@ -37,13 +48,14 @@ module cpu_ooo(
         .instr_valid(instr_valid),
         .instr_ready(instr_ready),
         
-        .cmplt_free_regs({30{1'b0}}),
-        .cmplt_dest_arch({24{1'b0}}),
-        .cmplt_dest_phys({30{1'b0}}),
-        .ROB_entries({20{1'b0}}),
+        .cmplt_free_regs(committed_free_regs),
+        .cmplt_dest_arch(complete_arch_regs),
+        .cmplt_dest_phys(complete_phys_regs),
+        .ROB_entries(next_ROB_entries),
         
-        // .decoded_old_aliases(),
-        // .old_aliases_valid(),
+        .decoded_old_aliases(decoded_old_aliases),
+        .old_aliases_valid(decoded_old_aliases_valid),
+        .old_aliases_ready(rob_entries_available),
 
         .alu_op(alu_op),
         .alu_op_valid(alu_op_valid),
@@ -63,7 +75,6 @@ module cpu_ooo(
     assign mem_op_ready = 1;
     assign term_op_ready = 1;
 
-    wire [4*5-1:0] complete_arch_regs;
     wire [5*3-1:0] complete_ROB_entries;
     wire complete_alu_valid, complete_mem_valid, complete_term_valid;
 
@@ -83,7 +94,34 @@ module cpu_ooo(
         .mem_dout(dout_d),
         .mem_din(din_d),
 
-        .arch_dest_regs_out(complete_arch_regs)
+        .arch_dest_regs_out(complete_arch_regs),
+        .phys_dest_regs_out(complete_phys_regs),
+        .ROB_entries_out(complete_ROB_entries),
+        .complete_arith_valid(complete_alu_valid),
+        .complete_mem_valid(complete_mem_valid),
+        .complete_term_valid(complete_term_valid)
+    );
+
+    rob #(
+        .DATA_WIDTH(11),
+        .PUSH_WIDTH(4),
+        .ELEMENTS(15)
+    ) _rob (
+        .clk(clk),
+        .rst(rst),
+
+        .din(decoded_old_aliases),
+        .din_valid({4{decoded_old_aliases_valid}}),
+        .din_ready_ct(rob_ready_ct),
+
+        .dout(committed_free_regs),
+        // output [$clog2(PUSH_WIDTH):0] dout_valid_ct,
+        .dout_ready_ct(3'b011),
+
+        .entry_nums(next_ROB_entries),
+
+        .completed(complete_ROB_entries),
+        .cmplt_valid({complete_alu_valid, complete_mem_valid, complete_term_valid})
     );
 
 endmodule

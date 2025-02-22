@@ -10,12 +10,13 @@ module frontend #(
         output instr_ready,
 
         input [6*`PR_ADDR_W-1:0] cmplt_free_regs,
-        input [23:0] cmplt_dest_arch,
-        input [6*`PR_ADDR_W-1:0] cmplt_dest_phys,
+        input [5*4-1:0] cmplt_dest_arch,
+        input [5*`PR_ADDR_W-1:0] cmplt_dest_phys,
         input [19:0] ROB_entries,
 
         output [2*`PR_ADDR_W*FETCH_WIDTH-1:0] decoded_old_aliases,
         output old_aliases_valid,
+        input old_aliases_ready,
 
         output [`RENAMED_OP_SZ-1:0] alu_op,
         output alu_op_valid,
@@ -84,10 +85,12 @@ module frontend #(
     wire sort_alu_valid, sort_mem_valid, sort_term_valid;
     wire sort_alu_ready, sort_mem_ready, sort_term_ready;
     wire [`RENAMED_OP_SZ-1:0] sort_alu_op, sort_mem_op, sort_term_op;
+    wire [3:0] decoded_instrs_used;
+    assign decoded_instrs_ready = decoded_instrs_used & {4{old_aliases_ready}};
     type_sort #(FETCH_WIDTH) sorter(
         .instr_in(decoded_instrs),
         .instr_valid(decoded_instrs_valid),
-        .instr_used(decoded_instrs_ready),
+        .instr_used(decoded_instrs_used),
 
         .instr_alu(sort_alu_op),
         .instr_alu_valid(sort_alu_valid),
@@ -105,7 +108,7 @@ module frontend #(
     reg [`PR_ADDR_W-1:0] cmplt_dest_tmp; // combinational
     always @* begin
         cmplt_dest_mask = 0;
-        for(i = 0; i < 6; i = i + 1) begin
+        for(i = 0; i < 5; i = i + 1) begin
             cmplt_dest_tmp = cmplt_dest_phys[i*`PR_ADDR_W +: `PR_ADDR_W];
             if(cmplt_dest_tmp >= 2) cmplt_dest_mask[cmplt_dest_tmp-2] = 1;
         end

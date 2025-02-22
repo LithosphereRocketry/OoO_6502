@@ -17,7 +17,7 @@ module issue_buffer_ooo #(
         output dout_valid,
         input dout_ready,
 
-        input [6*`PR_ADDR_W-1:0] done_flags
+        input [29:0] done_flags
     );
     // look into instance array
 

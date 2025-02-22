@@ -10,21 +10,19 @@ module middle_end(
     input [`RENAMED_OP_SZ-1:0] term_instr,
     input term_valid,
 
-    input [8*3-1:0] arch_dest_regs,
-
     output [15:0] mem_addr,
     output mem_store,
     output [7:0] mem_dout,
     input [7:0] mem_din,
 
     output [4*5-1:0] arch_dest_regs_out,
+    output [`PR_ADDR_W*5-1:0] phys_dest_regs_out,
     output [5*3-1:0] ROB_entries_out,
     output complete_arith_valid,
     output complete_mem_valid,
     output complete_term_valid
 );
 
-wire [`PR_ADDR_W*5-1:0] dest_regs_out;
 wire [8*5-1:0] data_out;
 wire [4:0] reg_writes;
 
@@ -39,7 +37,7 @@ phys_reg_file _reg_file(
     .rst(rst),
 
     .read_addrs(reg_read_addrs),
-    .write_addrs(dest_regs_out),
+    .write_addrs(phys_dest_regs_out),
     .write_vals(data_out),
     .write_enable(reg_writes),
 
@@ -55,14 +53,14 @@ arithmetic_pipeline _arith_pipe(
     .op_a_val(reg_vals[8*9 +: 8]),
     .op_b_val(reg_vals[8*8 +: 8]),
     .flags_val(reg_vals[8*10 +: 8]),
-    .arch_dest_regs(arch_dest_regs[8*2 +: 8]),
+    .arch_dest_regs(arith_instr[55:48]),
     .immediate(arith_instr[3:0]),
 
     .instr_valid(arith_valid),
 
     .ROB_entry_out(ROB_entries_out[5*2 +: 5]),
-    .dest_reg_out(dest_regs_out[5*4 +: 5]),
-    .flag_reg_out(dest_regs_out[5*3 +: 5]),
+    .dest_reg_out(phys_dest_regs_out[5*4 +: 5]),
+    .flag_reg_out(phys_dest_regs_out[5*3 +: 5]),
     .result_val(data_out[8*4 +: 8]),
     .result_flags(data_out[8*3 +: 8]),
     .arch_dest_regs_out(arch_dest_regs_out[4*3 +: 8]),
@@ -80,7 +78,7 @@ memory_pipeline _mem_pipe(
     .dest_reg(mem_instr[28 +: 5]),
     .data(reg_vals[8*7 +: 8]),
     .imm(mem_instr[3:0]),
-    .dest_arch_regs(arch_dest_regs[8 +: 8]),
+    .dest_arch_regs(mem_instr[51:48]),
     .input_valid(mem_valid),
     .input_ready(mem_input_ready),
 
@@ -89,9 +87,9 @@ memory_pipeline _mem_pipe(
     .mem_dout(mem_dout),
     .mem_din(mem_din),
 
-    .dest_reg_out(dest_regs_out[5*2 +: 5]),
+    .dest_reg_out(phys_dest_regs_out[5*2 +: 5]),
     .data_out(data_out[8*2 +: 8]),
-    .dest_arch_regs_out(arch_dest_regs_out[4*2 +: 8]),
+    .dest_arch_regs_out(arch_dest_regs_out[4*2 +: 4]),
     .ROB_entry_out(ROB_entries_out[5 +: 5]),
     .output_valid(complete_mem_valid)
 );
@@ -111,7 +109,7 @@ terminate_pipeline _term_pipe(
 assign reg_writes[1:0] = {2{complete_term_valid}};
 
 assign ROB_entries_out[4:0] = term_instr[42:38];
-assign arch_dest_regs_out[7:0] = arch_dest_regs[7:0];
-assign dest_regs_out[9:0] = term_instr[37:28];
+assign arch_dest_regs_out[7:0] = term_instr[55:48];
+assign phys_dest_regs_out[9:0] = term_instr[37:28];
 
 endmodule

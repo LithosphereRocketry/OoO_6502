@@ -69,7 +69,7 @@ module decoder #(
 
         input [29:0] cmplt_free_regs, // old assignments from committed instructions
 
-        input [23:0] cmplt_dest_regs, // physical regs from completed instructions
+        input [19:0] cmplt_dest_regs, // physical regs from completed instructions
         input [19:0] ROB_entries, // available ROB entries
 
         input [WIDTH*24-1:0] logical_instrs,
@@ -160,7 +160,7 @@ module decoder #(
         free_pool_tmp = (logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool;
         for(j = 0; j < 6; j = j + 1) begin
             if (cmplt_free_regs[5*j +: 5] > 1) free_pool_tmp[cmplt_free_regs[5*j +: 5]-2] = 1;
-            done_flags_in[cmplt_dest_regs[4*j +: 4]] = 1;
+            if(j < 5) done_flags_in[cmplt_dest_regs[4*j +: 4]] = 1;
         end
     end
 

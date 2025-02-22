@@ -8,7 +8,7 @@ module memory_pipeline(
     input [`PR_ADDR_W-1:0] dest_reg,
     input [7:0] data,
     input [3:0] imm,
-    input [7:0] dest_arch_regs,
+    input [3:0] dest_arch_regs,
     input input_valid,
     output input_ready,
 
@@ -19,7 +19,7 @@ module memory_pipeline(
 
     output reg [`PR_ADDR_W-1:0] dest_reg_out,
     output [7:0] data_out,
-    output reg [7:0] dest_arch_regs_out,
+    output reg [3:0] dest_arch_regs_out,
     output reg [4:0] ROB_entry_out,
     output reg output_valid
 );
