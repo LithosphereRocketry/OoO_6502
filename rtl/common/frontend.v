@@ -73,7 +73,7 @@ module frontend #(
     genvar g;
     wire [FETCH_WIDTH-1:0] op_is_term;
     for(g = 0; g < FETCH_WIDTH; g = g + 1)
-            assign op_is_term[g] = decoded_instrs[g*47 + 44 +: 3] == 3'b111;
+            assign op_is_term[g] = decoded_instrs[g*`RENAMED_OP_SZ + 45 +: 3] == 3'b111;
     
     wire issuing_term = 
             |(op_is_term & decoded_instrs_ready & decoded_instrs_valid);

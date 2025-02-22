@@ -1,5 +1,5 @@
 module issue_entry_capped #(
-        parameter INST_WIDTH = 47
+        parameter INST_WIDTH = `RENAMED_OP_SZ
     )
     (
         input clk,
@@ -17,7 +17,7 @@ module issue_entry_capped #(
     wire entry_ready;
     wire entry_valid;
 
-    issue_entry _entry(
+    issue_entry #(INST_WIDTH) _entry(
         .clk(clk),
         .rst(rst),
         .done_flags(done_flags),

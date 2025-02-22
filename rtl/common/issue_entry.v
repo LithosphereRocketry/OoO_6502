@@ -1,5 +1,5 @@
 module issue_entry #(
-        parameter INST_WIDTH = 47
+        parameter INST_WIDTH = `RENAMED_OP_SZ
     )
     (
         input clk,
@@ -32,7 +32,7 @@ module issue_entry #(
     always @(*) begin
         flagged_data = data;
         for (i = 0; i < 4; i = i + 1) begin
-            if(done_flags[data[13 + 5*i +: 4]-2]) flagged_data = flagged_data | (1 << (9+i));
+            if(done_flags[data[13 + 5*i +: 4]-2]) flagged_data = flagged_data | (1 << (4+i));
         end
     end
 

@@ -1,5 +1,5 @@
 module issue_cap #(
-        parameter INST_WIDTH = 47
+        parameter INST_WIDTH = `RENAMED_OP_SZ
     )
     (
         input entry_valid,
@@ -11,7 +11,7 @@ module issue_cap #(
     );
 
     wire ops_done;
-    assign ops_done = instr[9] & instr[10] & instr[11] & instr[12];
+    assign ops_done = &instr[7:4];
     assign entry_ready = ops_done & next_ready;
     assign result_valid = ops_done & entry_valid;
     

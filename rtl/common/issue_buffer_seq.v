@@ -1,5 +1,5 @@
 module issue_buffer_seq #(
-        parameter DATA_WIDTH = 47,
+        parameter DATA_WIDTH = `RENAMED_OP_SZ,
         parameter ELEMENTS = 4
     ) (
         input clk,
@@ -34,7 +34,7 @@ module issue_buffer_seq #(
         .output_valid({valids, cap_valid})
     );
 
-    issue_cap #(.INST_WIDTH(47)) _cap (
+    issue_cap #(.INST_WIDTH(DATA_WIDTH)) _cap (
         .entry_valid(cap_valid),
         .instr(dout),
         .next_ready(dout_ready),

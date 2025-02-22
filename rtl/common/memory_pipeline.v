@@ -59,9 +59,9 @@ always @(posedge clk) if(rst) reset(); else begin
     end
     else mem_addr <= base_val + offset;
     
-    mem_store <= opcode[0] & instr_valid & instr_ready;
+    mem_store <= opcode[0] & input_valid & input_ready;
     dest_reg_inflight <= dest_reg;
-    inflight_valid <= instr_valid & instr_ready;
+    inflight_valid <= input_valid & input_ready;
     dest_arch_regs_inflight <= dest_arch_regs;
     ROB_entry_inflight <= ROB_entry;
 

@@ -4,14 +4,16 @@ module terminate_pipeline(
         input [7:0] flag_vals,
         input [7:0] offset,
         input [3:0] immediate,
+        input instr_valid,
 
         output [15:0] result_addr,
         output result_valid
     );
 
-    wire [15:0] add = ({16{(opcode == 4'b1111)}} & {12'b0, immediate}) | ({16{(opcode == 4'b1110)}} & {8'b0, offset});
+    wire [15:0] add = opcode[0] ? {12'b0, immediate}
+                                : {8'b0, offset};
     assign result_addr = reg_base_val + add;
 
-    assign result_valid = (opcode == 4'b1111) | ((opcode == 4'b1110) & (flag_vals[immediate[2:0]] == immediate[3]));
+    assign result_valid = instr_valid & (opcode[0] | (flag_vals[immediate[2:0]] == ~immediate[3]));
 
 endmodule

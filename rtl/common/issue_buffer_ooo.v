@@ -3,7 +3,7 @@ Allows 4 inputs per cycle, outputs at most one ready instruction per cycle
 */
 
 module issue_buffer_ooo #(
-        parameter DATA_WIDTH = 47,
+        parameter DATA_WIDTH = `RENAMED_OP_SZ,
         parameter PUSH_WIDTH = 4,
         parameter ELEMENTS = 4
     ) (

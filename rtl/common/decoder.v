@@ -18,13 +18,13 @@ module decoder_cell(
         output [10*`PR_ADDR_W-1:0] new_rat_aliases,
         output [9:0] new_rat_done,
         output [9:0] old_rat_aliases,
-        output [7:0] arch_regs,
 
         output [`RENAMED_OP_SZ-1:0] decoded_instr,
         output decoded_instr_valid,
         input decoded_instr_ready
     );
 
+    wire [7:0] arch_regs;
     wire [19:0] src_regs;
     wire [3:0] src_ready;
     wire [3:0] immediate;
@@ -57,7 +57,7 @@ module decoder_cell(
     );
 
     assign logical_instr_ready = decoded_instr_valid & decoded_instr_ready;
-    assign decoded_instr = {logical_instr[23:20], dest_regs, src_regs, src_ready, immediate, ROB_entry};
+    assign decoded_instr = {arch_regs, logical_instr[23:20], 1'b0, ROB_entry, dest_regs, src_regs, src_ready, immediate};
 
 endmodule
 
@@ -130,7 +130,6 @@ module decoder #(
         .new_rat_aliases({interim_assignments, produced_assignments}),
         .new_rat_done({interim_done_flags, produced_done_flags}),
         .old_rat_aliases(decoded_old_aliases),
-        .arch_regs(decoded_arch_regs),
 
         .decoded_instr(decoded_instrs),
         .decoded_instr_valid(decoded_instrs_valid_tmp),

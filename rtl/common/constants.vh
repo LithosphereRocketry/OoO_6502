@@ -12,7 +12,8 @@
 `define PHYS_REGS 32
 `define PR_ADDR_W $clog2(`PHYS_REGS)
 // 4 opcode bits, 2 destination fields, 3 source fields
-`define RENAMED_OP_SZ (4\ // opcode
+`define RENAMED_OP_SZ (2*4\ // architected destinations
+                     + 4\ // opcode
                      + 2*`PR_ADDR_W\ // destinations
                      + 4*`PR_ADDR_W\ // sources
                      + 4\ // valid bits
