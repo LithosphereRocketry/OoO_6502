@@ -3,9 +3,9 @@ module phys_reg_file(
     input rst,
 
     input [5*12-1:0] read_addrs,
-    input [5*6-1:0] write_addrs,
-    input [8*6-1:0] write_vals,
-    input [5:0] write_enable,
+    input [5*5-1:0] write_addrs,
+    input [8*5-1:0] write_vals,
+    input [4:0] write_enable,
 
     output [8*12-1:0] read_vals
 );
@@ -25,7 +25,7 @@ end
 
 integer i;
 always @(posedge clk) if(rst) reset(); else begin
-    for(i = 0; i < 6; i = i + 1) begin
+    for(i = 0; i < 5; i = i + 1) begin
         if(write_addrs[5*i +: 5] >= 2 & write_enable[i]) begin
             regs[8*(write_addrs[5*i +: 5]-2) +: 8] <= write_vals[8*i +: 8];
         end

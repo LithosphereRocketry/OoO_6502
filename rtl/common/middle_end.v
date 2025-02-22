@@ -24,14 +24,13 @@ module middle_end(
     output complete_term_valid
 );
 
-wire [`PR_ADDR_W*6-1:0] dest_regs_out;
-wire [8*6-1:0] data_out;
-wire [5:0] reg_writes;
-assign reg_writes[5] = 0; // todo: 5 or 6 wide?
+wire [`PR_ADDR_W*5-1:0] dest_regs_out;
+wire [8*5-1:0] data_out;
+wire [4:0] reg_writes;
 
 wire [5*12-1:0] reg_read_addrs;
 genvar i;
-assign reg_read_addrs = {arith_instr[13 +: 20], mem_instr[13 +: 20], term_instr[13 +: 20]};
+assign reg_read_addrs = {arith_instr[8 +: 20], mem_instr[8 +: 20], term_instr[8 +: 20]};
 
 wire [8*12-1:0] reg_vals;
 

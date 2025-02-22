@@ -17,9 +17,12 @@ module alu(
 
     wire [7:0] q_adder;
     wire [7:0] f_adder;
+
+    wire [7:0] adder_b = (opcode[0] | opcode[1]) ? ~b : b;
+
     adder _adder(
         .a(a),
-        .b(b),
+        .b(adder_b),
         .f_in(f_in),
         
         .mask_overflow(opcode[2]),

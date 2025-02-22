@@ -16,14 +16,19 @@ module core(
         // input RDY;              // Ready signal. Pauses CPU when RDY=0 
     );
 
+    assign we1 = 0;
+
     cpu_ooo cpu(
         .clk(clk),
         .rst(rst),
 
         .addr_i(addr1),
-        .din_i(data_in1)
+        .din_i(data_in1),
         
-        // TODO: second port
+        .addr_d(addr2),
+        .din_d(data_in2),
+        .dout_d(data_out2),
+        .wr_d(we2)
     );
 
 endmodule
