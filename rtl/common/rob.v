@@ -28,7 +28,7 @@ module rob #(
     // slightly easier to have one slot always free - wastes one word of
     // memory, but simplifies logic for distinguishing full from empty
     localparam SLOTS = ELEMENTS+1;
-    localparam ADDR_WIDTH = $clog2(SLOTS);
+    localparam ADDR_WIDTH = $clog2(SLOTS)+1;
 
     reg [ADDR_WIDTH-1:0] read_ptr, write_ptr;
 
@@ -51,8 +51,8 @@ module rob #(
     integer i;
     always @(*) begin
         for(i = 0; i < 4; i = i + 1) begin
-            if(write_ptr + i < SLOTS) entry_nums[ADDR_WIDTH*i +: ADDR_WIDTH] <= write_ptr + 1;
-            else entry_nums[ADDR_WIDTH*i +: ADDR_WIDTH] <= write_ptr + 1 - SLOTS;
+            if(write_ptr + i < SLOTS) entry_nums[ADDR_WIDTH*(3-i) +: ADDR_WIDTH] = write_ptr + i;
+            else entry_nums[ADDR_WIDTH*(3-i) +: ADDR_WIDTH] = write_ptr + 1 - SLOTS;
         end
     end
 
@@ -68,7 +68,7 @@ module rob #(
         // (this whole thing is Bad Verilog, the priority is making it work)
         write_ptr_temp = write_ptr;
         for(i = 0; i < PUSH_WIDTH; i++) if((i < din_ready_ct) & din_valid[i]) begin
-            buffer[write_ptr_temp] <= {din[i*(DATA_WIDTH-1) +: DATA_WIDTH-1], 1'b0};
+            buffer[write_ptr_temp] <= {din[(PUSH_WIDTH-1-i)*(DATA_WIDTH-1) +: DATA_WIDTH-1], 1'b0};
             write_ptr_temp = (write_ptr_temp == SLOTS-1) ? 0 : write_ptr_temp + 1;
         end
         write_ptr <= write_ptr_temp;
@@ -84,12 +84,12 @@ module rob #(
             index = read_ptr + i;
             if(index > ELEMENTS) index = index - SLOTS;
             if(valid) if(buffer[index][0]) begin
-                dout[DATA_WIDTH*i +: DATA_WIDTH-1] = buffer[index][DATA_WIDTH-1:1];
+                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] = buffer[index][DATA_WIDTH-1:1];
                 dout_valid_ct = dout_valid_ct + 1;
                 read_ptr_tmp = (read_ptr_tmp == SLOTS-1) ? 0 : read_ptr_tmp + 1;
             end else begin
                 valid = 0;
-                dout[DATA_WIDTH*i +: DATA_WIDTH-1] = 0;
+                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] = 0;
             end
         end
         read_ptr = read_ptr_tmp;

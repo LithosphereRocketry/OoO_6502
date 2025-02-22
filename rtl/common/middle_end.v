@@ -20,7 +20,8 @@ module middle_end(
     output [5*3-1:0] ROB_entries_out,
     output complete_arith_valid,
     output complete_mem_valid,
-    output complete_term_valid
+    output complete_term_valid,
+    output complete_term_failed
 );
 
 wire [8*5-1:0] data_out;
@@ -96,7 +97,7 @@ memory_pipeline _mem_pipe(
 assign reg_writes[2] = complete_mem_valid;
 
 terminate_pipeline _term_pipe(
-    .opcode(term_instr[`RENAMED_OP_SZ-4 +: 4]),
+    .opcode(term_instr[47:44]),
     .reg_base_val({reg_vals[8*3 +: 8], reg_vals[7:0]}),
     .flag_vals(reg_vals[8 +: 8]),
     .offset(reg_vals[8*2 +: 8]),
@@ -104,7 +105,8 @@ terminate_pipeline _term_pipe(
     .instr_valid(term_valid),
 
     .result_addr(data_out[8*2-1:0]),
-    .result_valid(complete_term_valid)
+    .result_valid(complete_term_valid),
+    .term_failed(complete_term_failed)
 );
 assign reg_writes[1:0] = {2{complete_term_valid}};
 

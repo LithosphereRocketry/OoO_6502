@@ -57,7 +57,7 @@ module frontend #(
 
         .cmplt_free_regs(cmplt_free_regs),
         .cmplt_dest_regs(cmplt_dest_arch),
-        .ROB_entries(ROB_entries),
+        .ROB_entries_in(ROB_entries),
 
         .logical_instrs(microops),
         .logical_instrs_valid(do_microops),
