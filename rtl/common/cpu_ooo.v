@@ -98,6 +98,7 @@ module cpu_ooo(
         .mem_valid(mem_op_valid),
         .term_instr(term_op),
         .term_valid(term_op_valid),
+        .term_ready(term_op_ready),
 
         .mem_addr(addr_d),
         .mem_store(wr_d),

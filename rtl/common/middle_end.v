@@ -112,6 +112,7 @@ terminate_pipeline _term_pipe(
     .offset(reg_vals[8*2 +: 8]),
     .immediate(term_instr[3:0]),
     .instr_valid(term_valid),
+    .instr_ready(term_ready),
     //trying something
     .ROB_entries(term_instr[42:38]),
     .arch_dest_regs({term_instr[51:48], term_instr[55:52]}),
