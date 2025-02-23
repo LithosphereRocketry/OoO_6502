@@ -153,6 +153,7 @@ module decoder #(
         phys_reg_done_tmp <= 0;
         // done_flags_in <= {10{1'b1}};
         done_flags_to_set <= 0;
+        free_pool_to_set <= 0;
         // done_flags_tmp <= {10{1'b1}};
         // modified_done_flags <= {10{1'b1}};
     end endtask
@@ -164,20 +165,21 @@ module decoder #(
     // assign interim_free_pool[`PHYS_REGS*WIDTH-1 +: `PHYS_REGS] = free_pool;
     // assign interim_done_flags[10*WIDTH-1 +: 10] = done_flags;
 
+    reg [29:0] free_pool_to_set;
+    wire [29:0] free_pool_tmp;
     assign assignments_in = (logical_instrs_valid & logical_instrs_ready) ? produced_assignments : assignments;
     assign done_flags_in = ((logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags) | done_flags_to_set;
-
-    reg [29:0] free_pool_tmp;
-    reg [29:0] free_pool_to_set;
+    assign free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool) | free_pool_to_set;
+    
 
     // set done flags for completed instructions
     integer j;
     always @(*) begin
         // done_flags_to_set = (logical_instrs_valid & logical_instrs_ready) ? 0 : done_flags_to_set;
-        free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool);
+        // free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool_tmp);
         phys_reg_done_tmp = phys_reg_done;
         for(j = 0; j < 6; j = j + 1) begin
-            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_tmp[cmplt_free_regs[5*j +: 5]-2] = 1;
+            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_to_set[cmplt_free_regs[5*j +: 5]-2] = 1;
             if(j < 5) begin
                 done_flags_to_set[cmplt_dest_regs[4*j +: 4]-2] = 1;
                 phys_reg_done_tmp[cmplt_dest_phys[5*j +: 5]-2] = 1;
@@ -203,6 +205,7 @@ module decoder #(
             instructions <= logical_instrs;
             to_be_decoded <= {WIDTH{1'b1}};
             free_pool <= free_pool_tmp;
+            free_pool_to_set <= 0;
             old_aliases_valid <= 1;
             ROB_entries <= ROB_entries_in;
             phys_reg_done <= 0;
