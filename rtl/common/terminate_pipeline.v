@@ -13,21 +13,23 @@ module terminate_pipeline(
         output [15:0] result_addr,
         output result_valid,
         input result_ready,
-        output term_failed,
         output [4:0] ROB_entries_out,
         output [7:0] arch_dest_regs_out,
         output [9:0] phys_dest_regs_out
     );
 
+    wire jump_happens = opcode[0] | (flag_vals[immediate[2:0]] == ~immediate[3]);
+
     wire [15:0] add = opcode[0] ? {12'b0, immediate}
                                 : {{8{offset[7]}}, offset};
-    assign result_addr = reg_base_val + add;
+    // This is a bit of a hack - we know conditional jumps are always PC-relative
+    // with a 1-byte immediate, so not doing them is equivalent to jumping to
+    // base+1
+    assign result_addr = reg_base_val + (jump_happens ? add : 1);
 
     assign instr_ready = result_ready;
 
-    assign result_valid = (instr_valid & instr_ready) & (opcode[0] | (flag_vals[immediate[2:0]] == ~immediate[3]));
-
-    assign term_failed = (instr_valid & instr_ready) & ~result_valid;
+    assign result_valid = (instr_valid & instr_ready);
 
     assign ROB_entries_out = ROB_entries;
     assign arch_dest_regs_out = result_valid ? arch_dest_regs : 8'b0;

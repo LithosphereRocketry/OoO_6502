@@ -24,7 +24,6 @@ module middle_end(
     output complete_term_valid,
     output complete_term_wb_valid,
     input complete_term_ready,
-    output complete_term_failed,
     output [15:0] term_address
 );
 
@@ -122,7 +121,6 @@ terminate_pipeline _term_pipe(
     .result_addr(term_result_addr),
     .result_valid(complete_term_valid),
     .result_ready(complete_term_ready),
-    .term_failed(complete_term_failed),
     //trying something
     .ROB_entries_out(term_ROB_entry),
     .arch_dest_regs_out(term_arch_dest_regs_out),

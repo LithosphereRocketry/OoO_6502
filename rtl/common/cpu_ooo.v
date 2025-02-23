@@ -82,7 +82,7 @@ module cpu_ooo(
     wire complete_alu_valid, complete_mem_valid, complete_term_valid, complete_term_failed;
 
     always @(posedge clk) begin
-        frontend_wakeup <= complete_term_failed | complete_term_valid;
+        frontend_wakeup <= complete_term_valid;
         instr_valid <= complete_term_valid;
     end
 
@@ -114,7 +114,6 @@ module cpu_ooo(
         .complete_term_valid(complete_term_valid),
         .complete_term_wb_valid(complete_term_wb_valid),
         .complete_term_ready(instr_ready),
-        .complete_term_failed(complete_term_failed),
         .term_address(addr_i)
     );
 
