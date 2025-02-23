@@ -9,6 +9,7 @@ module rename_decoder_cell(
         input [3:0] arch_reg,
 
         input [9:0] rat_done,
+        input [29:0] phys_reg_done,
         input [`PR_ADDR_W*10 - 1:0] rat_aliases,
 
         output [`PR_ADDR_W-1:0] phys_reg,
@@ -19,10 +20,7 @@ module rename_decoder_cell(
                     : arch_reg == 4'h1 ? 5'h01
                     : rat_aliases[(arch_reg-2)*`PR_ADDR_W +: `PR_ADDR_W];
     assign ready = (arch_reg == 4'h0 | arch_reg == 4'h1) ? 1'b1
-                : ((rat_done & (1 << (arch_reg-2))) != 0) ;
-    wire tmp, tmp1;
-    assign tmp = (rat_done & (1 << (arch_reg-2))) != 0;
-    assign tmp1 = rat_done[arch_reg - 2];
+                : (rat_done[arch_reg-2] | phys_reg_done[phys_reg-2]);
 
 endmodule
 
@@ -30,6 +28,7 @@ module rename_decoder(
         input [23:0] microop,
 
         input [9:0] rat_done,
+        input [29:0] phys_reg_done,
         input [`PR_ADDR_W*10 - 1:0] rat_aliases,
 
         output [`PR_ADDR_W*4-1:0] src_regs,
@@ -45,6 +44,7 @@ module rename_decoder(
         .arch_reg(src_arch),
         
         .rat_done(rat_done),
+        .phys_reg_done(phys_reg_done),
         .rat_aliases(rat_aliases),
 
         .phys_reg(src_regs),

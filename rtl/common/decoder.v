@@ -12,6 +12,7 @@ module decoder_cell(
         input [`PHYS_REGS-3:0] free_pool,
         input [10*`PR_ADDR_W-1:0] rat_aliases,
         input [9:0] rat_done,
+        input [29:0] phys_reg_done,
         input [4:0] ROB_entry,
 
         output [`PHYS_REGS-3:0] free_pool_after,
@@ -35,6 +36,7 @@ module decoder_cell(
     rename_decoder _rename_decode(
         .microop(logical_instr),
         .rat_done(rat_done),
+        .phys_reg_done(phys_reg_done),
         .rat_aliases(rat_aliases),
         .src_regs(src_regs),
         .src_ready(src_ready),
@@ -95,7 +97,7 @@ module decoder #(
     reg [19:0] ROB_entries;
 
     wire [9:0] done_flags;
-    reg [9:0] done_flags_in;
+    wire [9:0] done_flags_in;
     wire [10*`PR_ADDR_W-1:0] assignments, assignments_in;
     rat #(10, `PR_ADDR_W) _rat(
         .clk(clk),
@@ -116,6 +118,7 @@ module decoder #(
     wire [10*`PR_ADDR_W-1:0] produced_assignments;
     wire [`PHYS_REGS-3:0] produced_free_pool;
     wire [9:0] produced_done_flags;
+    reg [9:0] modified_done_flags;
 
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
@@ -124,7 +127,7 @@ module decoder #(
 
         .free_pool({free_pool, interim_free_pool}),
         .rat_aliases({assignments, interim_assignments}),
-        .rat_done({done_flags, interim_done_flags}),
+        .rat_done({modified_done_flags, interim_done_flags}),
         .ROB_entry(ROB_entries),
 
         .free_pool_after({interim_free_pool, produced_free_pool}),
@@ -156,14 +159,16 @@ module decoder #(
     reg [29:0] free_pool_tmp;
     reg [29:0] free_pool_to_set;
 
+    assign done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : modified_done_flags;
+
     // set done flags for completed instructions
     integer j;
     always @(*) begin
-        done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags;
+        modified_done_flags = done_flags;
         free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool) | free_pool_to_set;
         for(j = 0; j < 6; j = j + 1) begin
             if (cmplt_free_regs[5*j +: 5] > 1) free_pool_to_set = free_pool_to_set | 1 << (cmplt_free_regs[5*j +: 5]-2);
-            if(j < 5) done_flags_in[cmplt_dest_regs[4*j +: 4]] = 1;
+            if(j < 5) modified_done_flags[cmplt_dest_regs[4*j +: 4]] = 1;
         end
     end
 
