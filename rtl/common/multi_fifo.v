@@ -57,7 +57,7 @@ module multi_fifo #(
         // (it's still gonna be ugly)
         // (this whole thing is Bad Verilog, the priority is making it work)
         write_ptr_temp = write_ptr;
-        for(i = 0; i < PUSH_WIDTH; i++) if(i < num_pushes) begin
+        for(i = 0; i < PUSH_WIDTH; i = i + 1) if(i < num_pushes) begin
             buffer[write_ptr_temp] <= din[i*DATA_WIDTH +: DATA_WIDTH];
             write_ptr_temp = (write_ptr_temp == SLOTS-1) ? 0 : write_ptr_temp + 1;
         end

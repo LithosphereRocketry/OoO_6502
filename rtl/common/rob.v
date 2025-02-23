@@ -66,20 +66,20 @@ module rob #(
         // (it's still gonna be ugly)
         // (this whole thing is Bad Verilog, the priority is making it work)
         write_ptr_temp = write_ptr;
-        for(i = 0; i < PUSH_WIDTH; i++) if((i < din_ready_ct) & din_valid[i]) begin
+        for(i = 0; i < PUSH_WIDTH; i = i + 1) if((i < din_ready_ct) & din_valid[i]) begin
             buffer[write_ptr_temp] <= din[(PUSH_WIDTH-1-i)*DATA_WIDTH +: DATA_WIDTH-1];
             write_ptr_temp = (write_ptr_temp == SLOTS-1) ? 0 : write_ptr_temp + 1;
         end
         write_ptr <= write_ptr_temp;
 
-        for(i = 0; i < PUSH_WIDTH; i++) if(cmplt_valid[i]) begin
+        for(i = 0; i < PUSH_WIDTH; i = i + 1) if(cmplt_valid[i]) begin
             buffer[completed[i*ADDR_WIDTH +: ADDR_WIDTH]][0] = 1;
         end
 
         // add all complete instructions (up to the push width) to the output
         valid = 1;
         read_ptr_tmp = read_ptr;
-        for(i = 0; i < 3; i++) if((i < dout_ready_ct) & (i < occupied)) begin
+        for(i = 0; i < 3; i = i + 1) if((i < dout_ready_ct) & (i < occupied)) begin
             index = read_ptr + i;
             if(index > ELEMENTS) index = index - SLOTS;
             if(valid) if(buffer[index][0]) begin

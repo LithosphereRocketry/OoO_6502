@@ -39,7 +39,7 @@ module toplevel();
             $display("Simulation timed out");
             $fatal;
         end else if(done) begin
-            for(i = 0; i < 9'h100; i++) begin
+            for(i = 0; i < 9'h100; i = i + 1) begin
                 if(correct_datastream[i] !== datastream[i]) begin
                     $display("Error in assembly output: expected %h at %h, got %h",
                             correct_datastream[i], i, datastream[i]);
@@ -70,6 +70,6 @@ module toplevel();
         $dumpfile(`WAVEPATH);
         $dumpvars;
 
-        for(i = 0; i < 256; i++) datastream[i] <= 8'hxx;
+        for(i = 0; i < 256; i = i + 1) datastream[i] <= 8'hxx;
     end
 endmodule

@@ -58,6 +58,7 @@ always @(posedge clk) if(rst) reset(); else begin
         mem_addr <= {base_val[15:8], lower_bits[7:0]};
     end
     else mem_addr <= base_val + offset;
+    mem_dout <= data;
     
     mem_store <= opcode[0] & input_valid & input_ready;
     dest_reg_inflight <= dest_reg;
