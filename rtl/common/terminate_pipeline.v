@@ -21,7 +21,7 @@ module terminate_pipeline(
     wire jump_happens = opcode[0] | (flag_vals[immediate[2:0]] == ~immediate[3]);
 
     wire [15:0] add = opcode[0] ? {12'b0, immediate}
-                                : {{8{offset[7]}}, offset};
+                                : {{8{offset[7]}}, offset} + 1;
     // This is a bit of a hack - we know conditional jumps are always PC-relative
     // with a 1-byte immediate, so not doing them is equivalent to jumping to
     // base+1
