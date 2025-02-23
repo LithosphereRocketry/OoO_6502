@@ -19,7 +19,11 @@ module rename_decoder_cell(
                     : arch_reg == 4'h1 ? 5'h01
                     : rat_aliases[(arch_reg-2)*`PR_ADDR_W +: `PR_ADDR_W];
     assign ready = (arch_reg == 4'h0 | arch_reg == 4'h1) ? 1'b1
-                : rat_done[arch_reg-2];
+                : ((rat_done & (1 << (arch_reg-2))) != 0) ;
+    wire tmp, tmp1;
+    assign tmp = (rat_done & (1 << (arch_reg-2))) != 0;
+    assign tmp1 = rat_done[arch_reg - 2];
+
 endmodule
 
 module rename_decoder(

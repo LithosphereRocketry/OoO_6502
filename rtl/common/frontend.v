@@ -110,7 +110,7 @@ module frontend #(
         cmplt_dest_mask = 0;
         for(i = 0; i < 5; i = i + 1) begin
             cmplt_dest_tmp = cmplt_dest_phys[i*`PR_ADDR_W +: `PR_ADDR_W];
-            if(cmplt_dest_tmp >= 2) cmplt_dest_mask[cmplt_dest_tmp-2] = 1;
+            if(cmplt_dest_tmp >= 2) cmplt_dest_mask = cmplt_dest_mask | ( 1 << (cmplt_dest_tmp-2));
         end
     end
 
