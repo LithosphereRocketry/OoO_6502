@@ -85,6 +85,8 @@ module cpu_ooo(
         frontend_wakeup <= complete_term_failed | complete_term_valid;
         instr_valid <= complete_term_valid;
     end
+
+    // assign term_op_ready = instr_ready;
     
     middle_end _middle(
         .clk(clk),

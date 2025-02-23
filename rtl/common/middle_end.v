@@ -100,8 +100,8 @@ memory_pipeline _mem_pipe(
 assign reg_writes[2] = complete_mem_valid;
 
 wire [15:0] term_result_addr;
-wire [5:0] term_ROB_entry;
-wire [8:0] term_arch_dest_regs_out;
+wire [4:0] term_ROB_entry;
+wire [7:0] term_arch_dest_regs_out;
 wire [9:0] term_phys_regs_out;
 reg term_result_valid;
 
