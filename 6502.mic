@@ -70,27 +70,22 @@
 @0x90 ; BCC
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     cterm {pch, pcl}, tmp0, flag @ !0 ; branch conditionally on inv. carry bit
-    term {pch, pcl}, 1 ; if branch not taken, fall through
 
 @0xB0 ; BCS
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     cterm {pch, pcl}, tmp0, flag @ 0 ; branch conditionally on carry bit
-    term {pch, pcl}, 1 ; if branch not taken, fall through
 
 @0xF0 ; BEQ
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     cterm {pch, pcl}, tmp0, flag @ 1 ; branch conditionally on zero bit
-    term {pch, pcl}, 1 ; if branch not taken, fall through
 
 @0xD0 ; BNE
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     cterm {pch, pcl}, tmp0, flag @ !1 ; branch conditionally on inv. zero bit
-    term {pch, pcl}, 1 ; if branch not taken, fall through
 
 @0x10 ; BPL
     ld tmp0, {pch, pcl}, zero ; load 1 byte immediate (PC+1)
     cterm {pch, pcl}, tmp0, flag @ !7 ; branch conditionally on inv. sign bit
-    term {pch, pcl}, 1 ; if branch not taken, fall through
 
 @0x18 ; CLC
     bit flag, flag @ !0

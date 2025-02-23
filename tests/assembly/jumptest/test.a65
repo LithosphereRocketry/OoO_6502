@@ -1,0 +1,24 @@
+.segment "CODE"
+
+_start:
+        lda #$42        ; load constant 
+
+        ldx #$00        ; load 0
+        beq do_thing
+        sta $4100       ; write done flag
+        jmp halt
+
+do_thing:
+        sta $4000       ; write a byte to output
+        sta $4100       ; write done flag
+        
+halt:   jmp halt
+_nmi: 
+        rti
+_irq:
+        rti
+
+.segment "VECTORS"
+.addr   _nmi    ; NMI vector
+.addr   _start  ; Reset vector
+.addr   _irq    ; IRQ/BRK vector

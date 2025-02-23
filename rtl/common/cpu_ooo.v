@@ -139,4 +139,13 @@ module cpu_ooo(
         .cmplt_valid({complete_alu_valid, complete_mem_valid, complete_term_wb_valid})
     );
 
+    
+    integer f;
+    reg [15:0] fetched_addr;
+    initial f = $fopen("instruction-sequences/instrs_atmosphere_ooo.txt", "w");
+    always @(posedge clk) begin
+        fetched_addr <= addr_i + 1;
+        if(instr_valid & instr_ready) $fwrite(f, "%h %h\n", fetched_addr, din_i);
+    end
+
 endmodule

@@ -236,6 +236,7 @@ def make_microcode(lines: typing.Iterable[str]) -> tuple[dict[int, int], list[in
                     words.append(encode_cterm(base_addr, offset, reg, bit, inv))
                     while len(words) % align != 0:
                         words.append(0)
+                    was_term = True
                 case "term":
                     base_addr, tail = parse_pair(tail)
                     offset, tail = parse_int(tail)
