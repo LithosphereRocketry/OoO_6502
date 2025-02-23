@@ -180,9 +180,7 @@ module decoder #(
         // free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool_tmp);
         phys_reg_done_tmp = phys_reg_done;
         for(j = 0; j < 6; j = j + 1) begin
-            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_to_set[cmplt_free_regs[5*j +: 5]-2] = 1;
             if(j < 5) begin
-                done_flags_to_set[cmplt_dest_regs[4*j +: 4]-2] = 1;
                 phys_reg_done_tmp[cmplt_dest_phys[5*j +: 5]-2] = 1;
             end
         end
@@ -216,6 +214,13 @@ module decoder #(
             old_aliases_valid <= 0;
             phys_reg_done <= phys_reg_done_tmp;
         end
+    end
+
+    always @(negedge clk) begin
+        for(j = 0; j < 5; j = j + 1)
+                done_flags_to_set[cmplt_dest_regs[4*j +: 4]-2] <= 1;
+        for(j = 0; j < 6; j = j + 1)
+                if (cmplt_free_regs[5*j +: 5] > 1) free_pool_to_set[cmplt_free_regs[5*j +: 5]-2] = 1;
     end
 
 endmodule
