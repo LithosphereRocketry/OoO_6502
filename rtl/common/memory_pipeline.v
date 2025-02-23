@@ -42,7 +42,7 @@ end endtask
 
 reg [4:0] ROB_entry_inflight;
 reg inflight_valid;
-reg [7:0] dest_arch_regs_inflight;
+reg [3:0] dest_arch_regs_inflight;
 reg [`PR_ADDR_W-1:0] dest_reg_inflight;
 
 assign input_ready = 1; // no stalls here
@@ -68,7 +68,7 @@ always @(posedge clk) if(rst) reset(); else begin
 
     // Second clock cycle: write, or receive input from memory
     dest_reg_out <= dest_reg_inflight;
-    dest_arch_regs_out <= dest_arch_regs;
+    dest_arch_regs_out <= dest_arch_regs_inflight;
     output_valid <= inflight_valid;
     ROB_entry_out <= ROB_entry_inflight;
 end

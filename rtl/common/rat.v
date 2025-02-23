@@ -14,6 +14,7 @@ module rat #(
     integer i;
     task reset; begin
         done_flags <= (1 << NUM_LRS) - 1;
+        assignments <= 0;
     end
     endtask
 

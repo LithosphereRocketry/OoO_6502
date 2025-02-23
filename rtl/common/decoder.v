@@ -151,6 +151,7 @@ module decoder #(
         free_pool_to_set <= 0;
         phys_reg_done <= 0;
         phys_reg_done_tmp <= 0;
+        old_aliases_valid <= 0;
         // done_flags_in <= {10{1'b1}};
         done_flags_to_set <= 0;
         free_pool_to_set <= 0;
