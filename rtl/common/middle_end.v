@@ -9,6 +9,7 @@ module middle_end(
     input mem_valid,
     input [`RENAMED_OP_SZ-1:0] term_instr,
     input term_valid,
+    output term_ready,
 
     output [15:0] mem_addr,
     output mem_store,
@@ -21,7 +22,9 @@ module middle_end(
     output complete_arith_valid,
     output complete_mem_valid,
     output complete_term_valid,
-    output complete_term_failed
+    input complete_term_ready,
+    output complete_term_failed,
+    output [15:0] term_address
 );
 
 wire [8*5-1:0] data_out;
@@ -106,6 +109,7 @@ terminate_pipeline _term_pipe(
 
     .result_addr(data_out[8*2-1:0]),
     .result_valid(complete_term_valid),
+    .result_ready(complete_term_ready),
     .term_failed(complete_term_failed)
 );
 assign reg_writes[1:0] = {2{complete_term_valid}};
@@ -113,5 +117,7 @@ assign reg_writes[1:0] = {2{complete_term_valid}};
 assign ROB_entries_out[4:0] = term_instr[42:38];
 assign arch_dest_regs_out[7:0] = term_instr[55:48];
 assign phys_dest_regs_out[9:0] = term_instr[37:28];
+
+assign term_address = data_out[8*2-1:0]
 
 endmodule
