@@ -5,6 +5,7 @@ _start:
         sta $4000       ; write a byte to output
         sta $4100       ; write done flag
 
+halt:   jmp halt
 _nmi: 
         rti
 _irq:
