@@ -16,7 +16,6 @@ module rob #(
         output [2:0] din_ready_ct,
 
         output reg [(DATA_WIDTH-1)*3-1:0] dout,
-        output reg [$clog2(3):0] dout_valid_ct,
         input [$clog2(3):0] dout_ready_ct,
 
         output reg [($clog2(ELEMENTS+1)+1)*4-1:0] entry_nums,
@@ -52,7 +51,7 @@ module rob #(
     always @(*) begin
         for(i = 0; i < 4; i = i + 1) begin
             if(write_ptr + i < SLOTS) entry_nums[ADDR_WIDTH*(3-i) +: ADDR_WIDTH] = write_ptr + i;
-            else entry_nums[ADDR_WIDTH*(3-i) +: ADDR_WIDTH] = write_ptr + 1 - SLOTS;
+            else entry_nums[ADDR_WIDTH*(3-i) +: ADDR_WIDTH] = write_ptr + i - SLOTS;
         end
     end
 
@@ -84,15 +83,14 @@ module rob #(
             index = read_ptr + i;
             if(index > ELEMENTS) index = index - SLOTS;
             if(valid) if(buffer[index][0]) begin
-                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] = buffer[index][DATA_WIDTH-1:1];
-                dout_valid_ct = dout_valid_ct + 1;
+                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] <= buffer[index][DATA_WIDTH-1:1];
                 read_ptr_tmp = (read_ptr_tmp == SLOTS-1) ? 0 : read_ptr_tmp + 1;
             end else begin
                 valid = 0;
-                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] = 0;
+                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] <= 0;
             end
         end
-        read_ptr = read_ptr_tmp;
+        read_ptr <= read_ptr_tmp;
     end
 
 endmodule
