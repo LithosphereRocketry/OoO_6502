@@ -134,7 +134,7 @@ reg [5:0] term_ROB_entry_tmp;
 reg [8:0] term_arch_dest_regs_out_tmp;
 reg [9:0] term_phys_regs_out_tmp;
 
-assign data_out[8*2-1:0] = term_result_addr_tmp;
+assign data_out[8*2-1:0] = term_result_addr_tmp + 1;
 assign ROB_entries_out[4:0] = term_ROB_entry_tmp;
 assign arch_dest_regs_out[7:0] = term_arch_dest_regs_out_tmp;
 assign phys_dest_regs_out[9:0] = term_phys_regs_out_tmp;
