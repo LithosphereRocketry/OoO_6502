@@ -72,6 +72,7 @@ module decoder #(
         input [29:0] cmplt_free_regs, // old assignments from committed instructions
 
         input [19:0] cmplt_dest_regs, // physical regs from completed instructions
+        input [24:0] cmplt_dest_phys,
         input [19:0] ROB_entries_in, // available ROB entries
 
         input [WIDTH*24-1:0] logical_instrs,
@@ -118,7 +119,9 @@ module decoder #(
     wire [10*`PR_ADDR_W-1:0] produced_assignments;
     wire [`PHYS_REGS-3:0] produced_free_pool;
     wire [9:0] produced_done_flags;
-    reg [9:0] modified_done_flags;
+    reg [9:0] done_flags_to_set;
+    reg [29:0] phys_reg_done;
+    reg [29:0] phys_reg_done_tmp;
 
     decoder_cell _decoder [WIDTH-1:0] (
         .logical_instr(instructions),
@@ -127,7 +130,8 @@ module decoder #(
 
         .free_pool({free_pool, interim_free_pool}),
         .rat_aliases({assignments, interim_assignments}),
-        .rat_done({modified_done_flags, interim_done_flags}),
+        .rat_done({done_flags, interim_done_flags}),
+        .phys_reg_done(phys_reg_done_tmp),
         .ROB_entry(ROB_entries),
 
         .free_pool_after({interim_free_pool, produced_free_pool}),
@@ -145,6 +149,12 @@ module decoder #(
         instructions <= 0;
         to_be_decoded <= 0;
         free_pool_to_set <= 0;
+        phys_reg_done <= 0;
+        phys_reg_done_tmp <= 0;
+        // done_flags_in <= {10{1'b1}};
+        done_flags_to_set <= 0;
+        // done_flags_tmp <= {10{1'b1}};
+        // modified_done_flags <= {10{1'b1}};
     end endtask
 
     initial reset();
@@ -155,21 +165,25 @@ module decoder #(
     // assign interim_done_flags[10*WIDTH-1 +: 10] = done_flags;
 
     assign assignments_in = (logical_instrs_valid & logical_instrs_ready) ? produced_assignments : assignments;
+    assign done_flags_in = ((logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags) | done_flags_to_set;
 
     reg [29:0] free_pool_tmp;
     reg [29:0] free_pool_to_set;
 
-    assign done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : modified_done_flags;
-
     // set done flags for completed instructions
     integer j;
     always @(*) begin
-        modified_done_flags = done_flags;
-        free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool) | free_pool_to_set;
+        // done_flags_to_set = (logical_instrs_valid & logical_instrs_ready) ? 0 : done_flags_to_set;
+        free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool);
+        phys_reg_done_tmp = phys_reg_done;
         for(j = 0; j < 6; j = j + 1) begin
-            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_to_set = free_pool_to_set | 1 << (cmplt_free_regs[5*j +: 5]-2);
-            if(j < 5) modified_done_flags[cmplt_dest_regs[4*j +: 4]] = 1;
+            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_tmp[cmplt_free_regs[5*j +: 5]-2] = 1;
+            if(j < 5) begin
+                done_flags_to_set[cmplt_dest_regs[4*j +: 4]-2] = 1;
+                phys_reg_done_tmp[cmplt_dest_phys[5*j +: 5]-2] = 1;
+            end
         end
+        // done_flags_in = ((logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags) | done_flags_to_set;
     end
 
     assign decoded_instrs_valid = {WIDTH{&decoded_instrs_valid_tmp}} & to_be_decoded;
@@ -189,12 +203,14 @@ module decoder #(
             instructions <= logical_instrs;
             to_be_decoded <= {WIDTH{1'b1}};
             free_pool <= free_pool_tmp;
-            free_pool_to_set <= free_pool_to_set;
             old_aliases_valid <= 1;
             ROB_entries <= ROB_entries_in;
+            phys_reg_done <= 0;
+            done_flags_to_set <= 0;
         end else begin
             to_be_decoded <= to_be_decoded_next;
             old_aliases_valid <= 0;
+            phys_reg_done <= phys_reg_done_tmp;
         end
     end
 

@@ -24,7 +24,7 @@ for(k = 0; k < 12; k = k + 1) begin
 end
 
 integer i;
-always @(posedge clk) if(rst) reset(); else begin
+always @(negedge clk) if(rst) reset(); else begin
     for(i = 0; i < 5; i = i + 1) begin
         if(write_addrs[5*i +: 5] >= 2 & write_enable[i]) begin
             regs[8*(write_addrs[5*i +: 5]-2) +: 8] <= write_vals[8*i +: 8];

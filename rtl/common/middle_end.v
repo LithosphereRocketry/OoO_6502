@@ -111,7 +111,7 @@ terminate_pipeline _term_pipe(
 assign reg_writes[1:0] = {2{complete_term_valid}};
 
 assign ROB_entries_out[4:0] = term_instr[42:38];
-assign arch_dest_regs_out[7:0] = term_instr[55:48];
-assign phys_dest_regs_out[9:0] = term_instr[37:28];
+assign arch_dest_regs_out[7:0] = term_valid? term_instr[55:48] : 8'b0;
+assign phys_dest_regs_out[9:0] = term_valid ? term_instr[37:28] : 10'b0;
 
 endmodule
