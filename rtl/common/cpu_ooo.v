@@ -105,13 +105,11 @@ module cpu_ooo(
         .ROB_entries_out(complete_ROB_entries),
         .complete_arith_valid(complete_alu_valid),
         .complete_mem_valid(complete_mem_valid),
-        .complete_term_valid(instr_valid),
+        .complete_term_valid(complete_term_valid),
         .complete_term_ready(instr_ready),
         .complete_term_failed(complete_term_failed),
         .term_address(addr_i)
     );
-
-    assign frontend_wakeup = instr_valid | complete_term_failed;
 
     rob #(
         .DATA_WIDTH(11),

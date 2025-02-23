@@ -32,7 +32,7 @@ module issue_entry #(
     always @(*) begin
         flagged_data = data;
         for (i = 0; i < 4; i = i + 1) begin
-            if((done_flags & (1<< (data[13 + 5*i +: 4]-2))) != 0) flagged_data = flagged_data | (1 << (4+i));
+            if((done_flags & (1<< (data[8 + 5*i +: 5]-2))) != 0) flagged_data = flagged_data | (1 << (4+i));
         end
     end
 
