@@ -11,7 +11,7 @@ module cpu_ooo(
         input [7:0] din_d
     );
 
-    wire instr_valid;
+    reg instr_valid;
     wire instr_ready;
 
     wire [`RENAMED_OP_SZ-1:0] alu_op;
@@ -39,7 +39,7 @@ module cpu_ooo(
 
     // wire [8*3-1:0] dispatch_
 
-    wire frontend_wakeup;
+    reg frontend_wakeup;
 
     frontend _frontend(
         .clk(clk),
@@ -81,8 +81,10 @@ module cpu_ooo(
     wire [5*3-1:0] complete_ROB_entries;
     wire complete_alu_valid, complete_mem_valid, complete_term_valid, complete_term_failed;
 
-    assign frontend_wakeup = complete_term_failed | complete_term_valid;
-    assign instr_valid = complete_term_valid;
+    always @(posedge clk) begin
+        frontend_wakeup <= complete_term_failed | complete_term_valid;
+        instr_valid <= complete_term_valid;
+    end
     
     middle_end _middle(
         .clk(clk),

@@ -99,33 +99,57 @@ memory_pipeline _mem_pipe(
 );
 assign reg_writes[2] = complete_mem_valid;
 
+wire [15:0] term_result_addr;
+wire [5:0] term_ROB_entry;
+wire [8:0] term_arch_dest_regs_out;
+wire [9:0] term_phys_regs_out;
+reg term_result_valid;
+
 terminate_pipeline _term_pipe(
     .opcode(term_instr[47:44]),
-    .reg_base_val({reg_vals[8*3 +: 8], reg_vals[7:0]}),
+    .reg_base_val({reg_vals[7:0], reg_vals[8*3 +: 8]}),
     .flag_vals(reg_vals[8 +: 8]),
     .offset(reg_vals[8*2 +: 8]),
     .immediate(term_instr[3:0]),
     .instr_valid(term_valid),
     //trying something
     .ROB_entries(term_instr[42:38]),
-    .arch_dest_regs(term_instr[55:48]),
-    .phys_dest_regs(term_instr[37:28]),
+    .arch_dest_regs({term_instr[51:48], term_instr[55:52]}),
+    .phys_dest_regs({term_instr[32:28], term_instr[37:33]}),
 
-    .result_addr(data_out[8*2-1:0]),
+    .result_addr(term_result_addr),
     .result_valid(complete_term_valid),
     .result_ready(complete_term_ready),
     .term_failed(complete_term_failed),
     //trying something
-    .ROB_entries_out(ROB_entries_out[4:0]),
-    .arch_dest_regs_out(arch_dest_regs_out[7:0]),
-    .phys_dest_regs_out(phys_dest_regs_out[9:0])
+    .ROB_entries_out(term_ROB_entry),
+    .arch_dest_regs_out(term_arch_dest_regs_out),
+    .phys_dest_regs_out(term_phys_regs_out)
 );
-assign reg_writes[1:0] = {2{complete_term_valid}};
+assign reg_writes[1:0] = {2{term_result_valid}};
+
+reg [15:0] term_result_addr_tmp;
+reg [5:0] term_ROB_entry_tmp;
+reg [8:0] term_arch_dest_regs_out_tmp;
+reg [9:0] term_phys_regs_out_tmp;
+
+assign data_out[8*2-1:0] = term_result_addr_tmp;
+assign ROB_entries_out[4:0] = term_ROB_entry_tmp;
+assign arch_dest_regs_out[7:0] = term_arch_dest_regs_out_tmp;
+assign phys_dest_regs_out[9:0] = term_phys_regs_out_tmp;
+
+always @(posedge clk) begin
+    term_result_addr_tmp <= term_result_addr;
+    term_ROB_entry_tmp <= term_ROB_entry;
+    term_arch_dest_regs_out_tmp <= term_arch_dest_regs_out;
+    term_phys_regs_out_tmp <= term_phys_regs_out;
+    term_result_valid <= complete_term_valid;
+end
 
 // assign ROB_entries_out[4:0] = term_instr[42:38];
 // assign arch_dest_regs_out[7:0] = term_valid? term_instr[55:48] : 8'b0;
 // assign phys_dest_regs_out[9:0] = term_valid ? term_instr[37:28] : 10'b0;
 
-assign term_address = data_out[8*2-1:0];
+assign term_address = term_result_addr;
 
 endmodule
