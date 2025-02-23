@@ -22,6 +22,7 @@ module middle_end(
     output complete_arith_valid,
     output complete_mem_valid,
     output complete_term_valid,
+    output complete_term_wb_valid,
     input complete_term_ready,
     output complete_term_failed,
     output [15:0] term_address
@@ -146,6 +147,8 @@ always @(posedge clk) begin
     term_phys_regs_out_tmp <= term_phys_regs_out;
     term_result_valid <= complete_term_valid;
 end
+
+assign complete_term_wb_valid = term_result_valid;
 
 // assign ROB_entries_out[4:0] = term_instr[42:38];
 // assign arch_dest_regs_out[7:0] = term_valid? term_instr[55:48] : 8'b0;

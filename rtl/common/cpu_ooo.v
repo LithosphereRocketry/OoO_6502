@@ -87,6 +87,7 @@ module cpu_ooo(
     end
 
     // assign term_op_ready = instr_ready;
+    wire complete_term_wb_valid;
     
     middle_end _middle(
         .clk(clk),
@@ -111,6 +112,7 @@ module cpu_ooo(
         .complete_arith_valid(complete_alu_valid),
         .complete_mem_valid(complete_mem_valid),
         .complete_term_valid(complete_term_valid),
+        .complete_term_wb_valid(complete_term_wb_valid),
         .complete_term_ready(instr_ready),
         .complete_term_failed(complete_term_failed),
         .term_address(addr_i)
@@ -135,7 +137,7 @@ module cpu_ooo(
         .entry_nums(next_ROB_entries),
 
         .completed(complete_ROB_entries),
-        .cmplt_valid({complete_alu_valid, complete_mem_valid, complete_term_valid})
+        .cmplt_valid({complete_alu_valid, complete_mem_valid, complete_term_wb_valid})
     );
 
 endmodule
