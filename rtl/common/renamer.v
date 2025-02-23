@@ -56,7 +56,7 @@ module renamer(
 
         output [7:0] dst_arch_regs,
         output [2*`PR_ADDR_W-1:0] dst_regs,
-        output [2*`PR_ADDR_W-1:0] old_regs,
+        output [2*`PR_ADDR_W:0] old_regs,
         output rename_valid
     );
 
@@ -80,10 +80,11 @@ module renamer(
         .new_rat_done({rat_done_carry, new_rat_done}),
 
         .phys_reg(dst_regs),
-        .old_reg(old_regs),
+        .old_reg(old_regs[2*`PR_ADDR_W:1]),
         .phys_reg_valid(cells_valid)
     );
     assign rename_valid = prev_rename_valid & (&cells_valid);
+    assign old_regs[0] = (dst_arch_regs == 0) & (microop[23:20] == 0);
 
     wire [3:0] opcode = microop[23:20];
     // blah blah always @* bad

@@ -18,7 +18,7 @@ module decoder_cell(
         output [`PHYS_REGS-3:0] free_pool_after,
         output [10*`PR_ADDR_W-1:0] new_rat_aliases,
         output [9:0] new_rat_done,
-        output [9:0] old_rat_aliases,
+        output [10:0] old_rat_aliases,
 
         output [`RENAMED_OP_SZ-1:0] decoded_instr,
         output decoded_instr_valid,
@@ -81,7 +81,7 @@ module decoder #(
 
         output [`RENAMED_OP_SZ*WIDTH-1:0] decoded_instrs,
         output [8*WIDTH-1:0] decoded_arch_regs,
-        output [10*WIDTH-1:0] decoded_old_aliases,
+        output [11*WIDTH-1:0] decoded_old_aliases,
         output reg old_aliases_valid,
         input [WIDTH-1:0] decoded_instrs_ready,
         output [WIDTH-1:0] decoded_instrs_valid

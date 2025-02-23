@@ -14,7 +14,7 @@ module frontend #(
         input [5*`PR_ADDR_W-1:0] cmplt_dest_phys,
         input [19:0] ROB_entries,
 
-        output [2*`PR_ADDR_W*FETCH_WIDTH-1:0] decoded_old_aliases,
+        output [(2*`PR_ADDR_W+1)*FETCH_WIDTH-1:0] decoded_old_aliases,
         output old_aliases_valid,
         input old_aliases_ready,
 

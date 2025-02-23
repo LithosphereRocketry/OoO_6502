@@ -11,7 +11,7 @@ module rob #(
         input clk,
         input rst,
 
-        input [(DATA_WIDTH-1)*PUSH_WIDTH-1:0] din,
+        input [DATA_WIDTH*PUSH_WIDTH-1:0] din,
         input [PUSH_WIDTH-1:0] din_valid,
         output [2:0] din_ready_ct,
 
@@ -67,7 +67,7 @@ module rob #(
         // (this whole thing is Bad Verilog, the priority is making it work)
         write_ptr_temp = write_ptr;
         for(i = 0; i < PUSH_WIDTH; i++) if((i < din_ready_ct) & din_valid[i]) begin
-            buffer[write_ptr_temp] <= {din[(PUSH_WIDTH-1-i)*(DATA_WIDTH-1) +: DATA_WIDTH-1], 1'b0};
+            buffer[write_ptr_temp] <= din[(PUSH_WIDTH-1-i)*DATA_WIDTH +: DATA_WIDTH-1];
             write_ptr_temp = (write_ptr_temp == SLOTS-1) ? 0 : write_ptr_temp + 1;
         end
         write_ptr <= write_ptr_temp;

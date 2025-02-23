@@ -26,7 +26,7 @@ module cpu_ooo(
     wire term_op_valid;
     wire term_op_ready;
 
-    wire [2*`PR_ADDR_W*4-1:0] decoded_old_aliases;
+    wire [(2*`PR_ADDR_W+1)*4-1:0] decoded_old_aliases;
     wire decoded_old_aliases_valid;
     wire [2:0] rob_ready_ct;
     wire rob_entries_available;
