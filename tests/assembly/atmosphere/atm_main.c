@@ -14,5 +14,5 @@ int main() {
         alt >>= 8;
     }
     *done = 0;
-    return 0;
+    while(1);
 }
