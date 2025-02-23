@@ -19,13 +19,12 @@ module ram #(
         output reg [DATA_WIDTH-1:0] data_out2
     );
 
-    reg [DATA_WIDTH-1:0] ram1 [0:(1<<ADDR_WIDTH)-1];
-    reg [DATA_WIDTH-1:0] ram2 [0:(1<<ADDR_WIDTH)-1];
+    reg [DATA_WIDTH-1:0] ram [0:(1<<ADDR_WIDTH)-1];
 
     always @(posedge clk) begin
-        data_out1 <= ram1[addr1];
-        data_out2 <= ram2[addr2];
-        if(we1) ram1[addr1] <= data_in1;
-        if(we2) ram2[addr2] <= data_in2;
+        data_out1 <= ram[addr1];
+        data_out2 <= ram[addr2];
+        if(we1) ram[addr1] <= data_in1;
+        if(we2) ram[addr2] <= data_in2;
     end 
 endmodule

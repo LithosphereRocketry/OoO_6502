@@ -16,11 +16,9 @@ module rom #(
         output reg [DATA_WIDTH-1:0] data_out2
     );
 
-    reg [DATA_WIDTH-1:0] rom1 [0:(1<<ADDR_WIDTH)-1];
-    reg [DATA_WIDTH-1:0] rom2 [0:(1<<ADDR_WIDTH)-1];
-    initial $readmemh(FILE_PATH, rom1);
-    initial $readmemh(FILE_PATH, rom2);
+    reg [DATA_WIDTH-1:0] rom [0:(1<<ADDR_WIDTH)-1];
+    initial $readmemh(FILE_PATH, rom);
 
-    always @(posedge clk) data_out1 <= rom1[addr1];
-    always @(posedge clk) data_out2 <= rom2[addr2];
+    always @(posedge clk) data_out1 <= rom[addr1];
+    always @(posedge clk) data_out2 <= rom[addr2];
 endmodule

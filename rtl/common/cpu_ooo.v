@@ -45,9 +45,11 @@ module cpu_ooo(
         .clk(clk),
         .rst(rst),
         
+        // TODO: these valid/ready bits might need to have an added delay to
+        // make up for the delay introduced by memory
         .wakeup(frontend_wakeup),
         .instr(din_i),
-        .instr_valid(instr_valid),
+        .instr_valid(instr_valid), 
         .instr_ready(instr_ready),
         
         .cmplt_free_regs(committed_free_regs),
@@ -75,7 +77,6 @@ module cpu_ooo(
     // currently, pipelines don't stall
     assign alu_op_ready = 1;
     assign mem_op_ready = 1;
-    assign term_op_ready = 1;
 
     wire [5*3-1:0] complete_ROB_entries;
     wire complete_alu_valid, complete_mem_valid, complete_term_valid, complete_term_failed;
@@ -104,9 +105,13 @@ module cpu_ooo(
         .ROB_entries_out(complete_ROB_entries),
         .complete_arith_valid(complete_alu_valid),
         .complete_mem_valid(complete_mem_valid),
-        .complete_term_valid(complete_term_valid),
-        .complete_term_failed(complete_term_failed)
+        .complete_term_valid(instr_valid),
+        .complete_term_ready(instr_ready),
+        .complete_term_failed(complete_term_failed),
+        .term_address(addr_i)
     );
+
+    assign frontend_wakeup = instr_valid | complete_term_failed;
 
     rob #(
         .DATA_WIDTH(11),

@@ -24,7 +24,7 @@ module system(
     assign dport_out2 = data_w2;
     assign dport_write1 = we1 & addr1 == 16'h4000;
     assign dport_write2 = we2 & addr2 == 16'h4000;
-    assign done = we1 & addr1 == 16'h4100 & we2 & addr2 == 16'h4100;
+    assign done = (we1 & addr1 == 16'h4100) | (we2 & addr2 == 16'h4100);
 
     core core(
         .clk(clk),
