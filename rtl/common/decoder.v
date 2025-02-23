@@ -71,7 +71,8 @@ module decoder #(
 
         input [29:0] cmplt_free_regs, // old assignments from committed instructions
 
-        input [19:0] cmplt_dest_regs, // physical regs from completed instructions
+        input [19:0] cmplt_dest_regs, // architected regs from completed instructions
+        input [5*`PR_ADDR_W-1:0] cmplt_phys_regs,
         input [19:0] ROB_entries_in, // available ROB entries
 
         input [WIDTH*24-1:0] logical_instrs,
@@ -97,7 +98,7 @@ module decoder #(
     reg [19:0] ROB_entries;
 
     wire [9:0] done_flags;
-    wire [9:0] done_flags_in;
+    reg [9:0] done_flags_in; // combinational
     wire [10*`PR_ADDR_W-1:0] assignments, assignments_in;
     rat #(10, `PR_ADDR_W) _rat(
         .clk(clk),
@@ -118,16 +119,18 @@ module decoder #(
     wire [10*`PR_ADDR_W-1:0] produced_assignments;
     wire [`PHYS_REGS-3:0] produced_free_pool;
     wire [9:0] produced_done_flags;
-    reg [9:0] modified_done_flags;
+    reg [`PHYS_REGS-3:0] phys_reg_done;
+    reg [`PHYS_REGS-3:0] phys_reg_done_next; // combinational
 
-    decoder_cell _decoder [WIDTH-1:0] (
+    decoder_cell _decoder_cell [WIDTH-1:0] (
         .logical_instr(instructions),
         .rename_valid({1'b1, decoded_instrs_valid_tmp[WIDTH-1:1]}),
         .logical_instr_ready(decoders_logical_instrs_ready),  
 
         .free_pool({free_pool, interim_free_pool}),
         .rat_aliases({assignments, interim_assignments}),
-        .rat_done({modified_done_flags, interim_done_flags}),
+        .rat_done({done_flags, interim_done_flags}),
+        .phys_reg_done(phys_reg_done),
         .ROB_entry(ROB_entries),
 
         .free_pool_after({interim_free_pool, produced_free_pool}),
@@ -145,6 +148,7 @@ module decoder #(
         instructions <= 0;
         to_be_decoded <= 0;
         free_pool_to_set <= 0;
+        phys_reg_done <= 0;
     end endtask
 
     initial reset();
@@ -154,21 +158,17 @@ module decoder #(
     // assign interim_free_pool[`PHYS_REGS*WIDTH-1 +: `PHYS_REGS] = free_pool;
     // assign interim_done_flags[10*WIDTH-1 +: 10] = done_flags;
 
-    assign assignments_in = (logical_instrs_valid & logical_instrs_ready) ? produced_assignments : assignments;
-
     reg [29:0] free_pool_tmp;
     reg [29:0] free_pool_to_set;
-
-    assign done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : modified_done_flags;
 
     // set done flags for completed instructions
     integer j;
     always @(*) begin
-        modified_done_flags = done_flags;
-        free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool) | free_pool_to_set;
+        done_flags_in = (logical_instrs_valid & logical_instrs_ready) ? produced_done_flags : done_flags;
+        free_pool_tmp = ((logical_instrs_valid & logical_instrs_ready) ? produced_free_pool : free_pool);
         for(j = 0; j < 6; j = j + 1) begin
-            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_to_set = free_pool_to_set | 1 << (cmplt_free_regs[5*j +: 5]-2);
-            if(j < 5) modified_done_flags[cmplt_dest_regs[4*j +: 4]] = 1;
+            if (cmplt_free_regs[5*j +: 5] > 1) free_pool_tmp |= 1 << (cmplt_free_regs[5*j +: 5]-2);
+            if(j < 5) done_flags_in[cmplt_dest_regs[4*j +: 4]] = 1;
         end
     end
 
@@ -176,25 +176,29 @@ module decoder #(
 
     wire [WIDTH-1:0] to_be_decoded_next =
             to_be_decoded & ~(decoded_instrs_ready & decoded_instrs_valid);
+    
+    reg [`PR_ADDR_W-1:0] cmplt_tmp; // combinational
+    always @* begin
+        phys_reg_done_next = phys_reg_done;
+        for(j = 0; j < 5; j = j + 1) begin
+            cmplt_tmp = cmplt_phys_regs[`PR_ADDR_W*j +: `PR_ADDR_W];
+            if(cmplt_tmp >= 2) phys_reg_done_next[cmplt_tmp-2] = 1;
+        end
+    end
 
     assign logical_instrs_ready = to_be_decoded_next == 0;
-    // assign old_aliases_valid = logical_instrs_ready & logical_instrs_valid;
-    // assign old_aliases_valid = decoded_instrs_valid == 4'b1111;
-    // genvar x;
-    // for(x = 0; x < WIDTH; x = x + 1)
-    //     if(~decoded_instrs_valid_tmp > (1<<x))
-    //         assign decoded_instrs_valid_tmp[x] = 0;
     always @(posedge clk) if(rst) reset(); else begin
         if(logical_instrs_valid & logical_instrs_ready) begin
             instructions <= logical_instrs;
             to_be_decoded <= {WIDTH{1'b1}};
             free_pool <= free_pool_tmp;
-            free_pool_to_set <= free_pool_to_set;
             old_aliases_valid <= 1;
             ROB_entries <= ROB_entries_in;
+            phys_reg_done <= 0;
         end else begin
             to_be_decoded <= to_be_decoded_next;
             old_aliases_valid <= 0;
+            phys_reg_done <= phys_reg_done_next;
         end
     end
 

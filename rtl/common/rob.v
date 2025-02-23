@@ -16,7 +16,7 @@ module rob #(
         output [2:0] din_ready_ct,
 
         output reg [(DATA_WIDTH-1)*3-1:0] dout,
-        output reg [$clog2(3):0] dout_valid_ct,
+        // output reg [$clog2(3):0] dout_valid_ct,
         input [$clog2(3):0] dout_ready_ct,
 
         output reg [($clog2(ELEMENTS+1)+1)*4-1:0] entry_nums,
@@ -35,6 +35,7 @@ module rob #(
     task reset; begin
         read_ptr <= 0;
         write_ptr <= 0;
+        dout <= 0;
     end endtask
 
     reg [DATA_WIDTH-1:0] buffer [0:SLOTS-1];
@@ -66,33 +67,28 @@ module rob #(
         // make sure the loop depends on a constant so it's synthesizable
         // (it's still gonna be ugly)
         // (this whole thing is Bad Verilog, the priority is making it work)
-        write_ptr_temp = write_ptr;
         for(i = 0; i < PUSH_WIDTH; i++) if((i < din_ready_ct) & din_valid[i]) begin
-            buffer[write_ptr_temp] <= {din[(PUSH_WIDTH-1-i)*(DATA_WIDTH-1) +: DATA_WIDTH-1], 1'b0};
-            write_ptr_temp = (write_ptr_temp == SLOTS-1) ? 0 : write_ptr_temp + 1;
+            buffer[write_ptr] <= {din[(PUSH_WIDTH-1-i)*(DATA_WIDTH-1) +: DATA_WIDTH-1], 1'b0};
+            write_ptr <= (write_ptr == SLOTS-1) ? 0 : write_ptr + 1;
         end
-        write_ptr <= write_ptr_temp;
 
         for(i = 0; i < PUSH_WIDTH; i++) if(cmplt_valid[i]) begin
-            buffer[completed[i*ADDR_WIDTH +: ADDR_WIDTH]][0] = 1;
+            buffer[completed[i*ADDR_WIDTH +: ADDR_WIDTH]][0] <= 1;
         end
 
         // add all complete instructions (up to the push width) to the output
         valid = 1;
-        read_ptr_tmp = read_ptr;
         for(i = 0; i < 3; i++) if((i < dout_ready_ct) & (i < occupied)) begin
             index = read_ptr + i;
             if(index > ELEMENTS) index = index - SLOTS;
             if(valid) if(buffer[index][0]) begin
-                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] = buffer[index][DATA_WIDTH-1:1];
-                dout_valid_ct = dout_valid_ct + 1;
-                read_ptr_tmp = (read_ptr_tmp == SLOTS-1) ? 0 : read_ptr_tmp + 1;
+                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] <= buffer[index][DATA_WIDTH-1:1];
+                // dout_valid_ct <= dout_valid_ct + 1;
+                read_ptr <= (read_ptr == SLOTS-1) ? 0 : read_ptr + 1;
             end else begin
                 valid = 0;
-                dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] = 0;
             end
-        end
-        read_ptr = read_ptr_tmp;
+        end else dout[(DATA_WIDTH-1)*i +: DATA_WIDTH-1] <= 0;
     end
 
 endmodule
