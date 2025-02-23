@@ -20,7 +20,7 @@ module terminate_pipeline(
     );
 
     wire [15:0] add = opcode[0] ? {12'b0, immediate}
-                                : {8'b0, offset};
+                                : {{8{offset[7]}}, offset};
     assign result_addr = reg_base_val + add;
 
     assign instr_ready = result_ready;
